@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { PianoKeyboard } from '../../components/PianoKeyboard'
 
 const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -32,19 +32,13 @@ export function PianoChordBuilderPage() {
   const [inversion, setInversion] = useState(0)
 
   const formula = FORMULAS[quality]
+  const rootIdx = CHROMATIC.indexOf(root)
+  let notes = formula.intervals.map((step) => CHROMATIC[(rootIdx + step) % 12])
+  for (let i = 0; i < inversion && i < notes.length; i++) {
+    notes = [...notes.slice(1), notes[0]]
+  }
 
-  const notes = useMemo(() => {
-    const rootIdx = CHROMATIC.indexOf(root)
-    let result = formula.intervals.map((step) => CHROMATIC[(rootIdx + step) % 12])
-    for (let i = 0; i < inversion && i < result.length; i++) {
-      result = [...result.slice(1), result[0]]
-    }
-    return result
-  }, [root, quality, inversion])
-
-  const intervals = useMemo(() => {
-    return formula.intervals.map((step) => INTERVAL_NAMES[step] || `${step}`)
-  }, [quality])
+  const intervals = formula.intervals.map((step) => INTERVAL_NAMES[step] || `${step}`)
 
   const chordSymbol = `${root}${quality === 'major' ? '' : quality === 'minor' ? 'm' : quality}`
 
