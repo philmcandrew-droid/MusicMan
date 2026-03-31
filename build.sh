@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+echo "==> Installing frontend dependencies..."
+cd frontend
+npm ci
+echo "==> Building frontend..."
+npm run build
+cd ..
+
+echo "==> Copying frontend build to backend/static..."
+rm -rf backend/static
+cp -r frontend/dist backend/static
+
+echo "==> Installing backend dependencies..."
+cd backend
+pip install -r requirements.txt
+cd ..
+
+echo "==> Build complete!"

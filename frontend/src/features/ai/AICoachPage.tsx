@@ -17,7 +17,7 @@ export function AICoachPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/ai/coach', {
+      const res = await fetch('/api/v1/ai/coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
