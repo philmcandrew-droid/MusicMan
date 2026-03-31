@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MusicMan</string>
+    <string name="title_activity_main">MusicMan by Phil McAndrew</string>
+    <string name="app_creator">Created by Phil McAndrew</string>
+    <string name="package_name">com.philmcandrew.musicman</string>
+    <string name="custom_url_scheme">com.philmcandrew.musicman</string>
+</resources>

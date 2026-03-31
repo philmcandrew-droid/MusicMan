@@ -7,7 +7,7 @@ function App() {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <h1>MusicMan</h1>
-          <span>Musician Assistant</span>
+          <span>Musician Assistant · Phil McAndrew</span>
         </div>
         {appRoutes.map((route) => (
           <NavLink

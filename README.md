@@ -24,3 +24,23 @@ MusicMan is a musician assistant web app with:
    - `.venv\\Scripts\\activate`
    - `pip install -r requirements.txt`
    - `uvicorn app.main:app --reload`
+
+## Android app (Capacitor)
+The Android project lives in `frontend/android` and wraps the same MusicMan UI in a native app shell.
+
+1. Prepare Android build:
+   - `cd frontend`
+   - `npm install`
+   - `npm run mobile:sync`
+2. Open Android Studio:
+   - `npm run mobile:open`
+3. In Android Studio:
+   - Let Gradle sync complete
+   - Select an emulator/device
+   - Click Run to launch the app
+4. Build APK:
+   - Android Studio -> Build -> Build Bundle(s) / APK(s) -> Build APK(s)
+
+Notes:
+- Microphone-based features (tuner and audio recording) require runtime mic permission on device.
+- After web UI changes, run `npm run mobile:sync` again before rebuilding Android.
