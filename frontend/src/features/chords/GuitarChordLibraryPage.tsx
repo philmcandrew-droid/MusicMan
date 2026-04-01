@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { GuitarChordDiagram } from '../../components/GuitarChordDiagram'
 import { guitarChords } from './chordData'
 
-const QUALITIES = ['all', 'major', 'minor', '7th', 'power']
+const QUALITIES = ['all', 'major', 'minor', '7th', 'maj7', 'min7', '9th', '13th', 'moveable', 'jazz', 'power']
 
 export function GuitarChordLibraryPage() {
   const [query, setQuery] = useState('')

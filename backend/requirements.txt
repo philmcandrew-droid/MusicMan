@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 sqlmodel
 python-multipart
+httpx
+python-dotenv
