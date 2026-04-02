@@ -57,6 +57,8 @@ body {
   overflow-x: hidden;
   padding-top: env(safe-area-inset-top, 0);
   padding-bottom: env(safe-area-inset-bottom, 0);
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
 }
 
 #root {
@@ -153,6 +155,7 @@ body {
   flex: 1;
   padding: 2rem 2.5rem;
   max-width: 960px;
+  min-width: 0;
 }
 
 /* -------- Cards -------- */
@@ -421,6 +424,10 @@ button {
 /* -------- Responsive -------- */
 
 @media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
   .sidebar {
     position: fixed;
     top: auto;
@@ -429,12 +436,16 @@ button {
     width: 100%;
     height: auto;
     flex-direction: row;
-    padding: 0.5rem;
+    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom, 0));
     gap: 0;
     border-right: none;
     border-top: 1px solid var(--border);
     overflow-x: auto;
     overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    justify-content: space-around;
+    background: var(--bg-sidebar);
+    z-index: 100;
   }
 
   .sidebar-brand {
@@ -443,18 +454,89 @@ button {
 
   .nav-link {
     flex-direction: column;
-    gap: 0.2rem;
-    font-size: 0.65rem;
-    padding: 0.45rem 0.6rem;
-    min-width: max-content;
+    gap: 0.15rem;
+    font-size: 0.6rem;
+    padding: 0.35rem 0.45rem;
+    min-width: 0;
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .nav-link svg {
+    width: 16px;
+    height: 16px;
   }
 
   .main-content {
     margin-left: 0;
-    padding: 1.25rem 1rem 5rem;
+    padding: 0.75rem 0.75rem calc(3.5rem + env(safe-area-inset-bottom, 0));
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .page-card {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
   }
 
   .chord-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .chord-card {
+    padding: 0.75rem;
+  }
+
+  .chord-card h3 {
+    font-size: 0.88rem;
+  }
+
+  .row {
+    gap: 0.5rem;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.65rem;
+  }
+
+  .chip-group {
+    gap: 0.3rem;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  button {
+    font-size: 0.8rem;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .stack {
+    gap: 0.75rem;
+  }
+
+  .section-pill {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.7rem;
   }
 }

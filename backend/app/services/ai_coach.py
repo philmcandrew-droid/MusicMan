@@ -56,7 +56,7 @@ PROVIDERS: list[dict] = [
         "name": "OpenRouter",
         "env_key": "OPENROUTER_API_KEY",
         "url": "https://openrouter.ai/api/v1/chat/completions",
-        "model": "nvidia/nemotron-nano-9b-v2:free",
+        "model": "meta-llama/llama-3.3-70b-instruct:free",
     },
     {
         "name": "Groq",

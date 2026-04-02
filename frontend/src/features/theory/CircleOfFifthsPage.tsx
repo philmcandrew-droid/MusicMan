@@ -57,8 +57,8 @@ export function CircleOfFifthsPage() {
 
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         {/* SVG wheel */}
-        <div style={{ flexShrink: 0 }}>
-          <svg width={440} height={440} viewBox="0 0 440 440">
+        <div style={{ flexShrink: 0, width: '100%', maxWidth: 440 }}>
+          <svg viewBox="0 0 440 440" style={{ width: '100%', height: 'auto' }}>
             <defs>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="4" result="blur" />

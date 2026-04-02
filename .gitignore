@@ -15,6 +15,12 @@ backend/.venv/
 # IDE
 .vscode/
 .idea/
+.cursor/
+
+# Android build outputs
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/.gradle/
 
 # OS
 .DS_Store

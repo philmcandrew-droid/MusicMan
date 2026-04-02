@@ -126,7 +126,7 @@ export function TunerPage() {
       <p className="page-subtitle">Select a string, play it, and tune until the needle is centered green.</p>
 
       {/* String selector */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.3rem, 1.5vw, 0.5rem)', flexWrap: 'wrap' }}>
         {GUITAR_STRINGS.map((s, i) => {
           const isTarget = i === selectedString
           const matchesNote = running && note === s.note && octave === s.octave
@@ -136,8 +136,8 @@ export function TunerPage() {
               key={s.label}
               onClick={() => setSelectedString(i)}
               style={{
-                width: 56,
-                height: 56,
+                width: 'clamp(44px, 12vw, 56px)',
+                height: 'clamp(44px, 12vw, 56px)',
                 borderRadius: '50%',
                 fontSize: '0.82rem',
                 fontWeight: 700,
@@ -182,10 +182,10 @@ export function TunerPage() {
 
       {/* Target string info */}
       {running && (
-        <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-          Target: <strong style={{ color: 'var(--text-primary)' }}>{target.label}</strong> ({target.freq.toFixed(2)} Hz)
+        <div style={{ textAlign: 'center', fontSize: 'clamp(0.7rem, 2.2vw, 0.8rem)', color: 'var(--text-muted)', display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span>Target: <strong style={{ color: 'var(--text-primary)' }}>{target.label}</strong> ({target.freq.toFixed(2)} Hz)</span>
           {hz && (
-            <span style={{ marginLeft: '1rem' }}>
+            <span>
               Detected: <strong style={{ color }}>{note}{octave}</strong> ({hz.toFixed(1)} Hz)
             </span>
           )}
@@ -193,8 +193,8 @@ export function TunerPage() {
       )}
 
       {/* Gauge */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <svg width={400} height={240} viewBox="0 0 400 240" style={{ maxWidth: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <svg viewBox="0 0 400 240" style={{ width: '100%', maxWidth: 400, height: 'auto' }}>
           {/* Background glow when in tune */}
           {running && inTune && (
             <circle cx={CX} cy={CY} r={R + 20} fill="none" stroke="#10b981" strokeWidth={1.5} opacity={0.15}>

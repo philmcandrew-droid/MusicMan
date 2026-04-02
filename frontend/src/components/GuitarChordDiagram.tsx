@@ -19,7 +19,7 @@ export function GuitarChordDiagram({ frets }: Props) {
   const startFret = maxFret <= FRETS ? 1 : minFret
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', maxWidth: w, height: 'auto' }}>
       {/* nut */}
       {startFret === 1 && (
         <rect x={PAD_LEFT - 2} y={PAD_TOP - 3} width={(STRINGS - 1) * STR_SPACING + 4} height={5} rx={1} fill="#ccc" />

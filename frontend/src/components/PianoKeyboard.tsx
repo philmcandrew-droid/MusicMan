@@ -134,8 +134,12 @@ export function PianoKeyboard({ startOctave = 4, octaves = 2, highlightedNotes =
   }
 
   return (
-    <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-      <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} style={{ display: 'block' }}>
+    <div style={{ overflowX: 'auto', paddingBottom: 8, WebkitOverflowScrolling: 'touch' }}>
+      <svg
+        viewBox={`0 0 ${svgW} ${svgH}`}
+        style={{ display: 'block', width: '100%', maxWidth: svgW, height: 'auto', minWidth: Math.min(svgW, 280) }}
+        preserveAspectRatio="xMidYMid meet"
+      >
         <rect width={svgW} height={svgH} rx={8} fill="#0e1430" />
         {whites}
         {blacks}

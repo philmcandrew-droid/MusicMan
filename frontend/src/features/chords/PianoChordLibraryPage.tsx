@@ -36,7 +36,7 @@ export function PianoChordLibraryPage() {
   const [query, setQuery] = useState('')
   const [filterQuality, setFilterQuality] = useState('all')
   const [playingChord, setPlayingChord] = useState<string | null>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const filtered = useMemo(
     () =>
