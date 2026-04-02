@@ -48,6 +48,7 @@ function readIdeasFromStorage(): Idea[] {
 export function IdeasPage() {
   const [text, setText] = useState('')
   const [ideas, setIdeas] = useState<Idea[]>(readIdeasFromStorage)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [persistError, setPersistError] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [recTime, setRecTime] = useState(0)
@@ -64,10 +65,27 @@ export function IdeasPage() {
     }
   }, [ideas])
 
+  const clearDraft = () => {
+    setText('')
+    setEditingId(null)
+  }
+
+  const openIdea = (idea: Idea) => {
+    setText(idea.text)
+    setEditingId(idea.id)
+  }
+
   const saveTextIdea = () => {
     if (!text.trim()) return
-    const now = new Date().toISOString()
-    setIdeas((prev) => [{ id: crypto.randomUUID(), text: text.trim(), createdAt: now }, ...prev])
+    if (editingId) {
+      setIdeas((prev) =>
+        prev.map((i) => (i.id === editingId ? { ...i, text: text.trim(), createdAt: i.createdAt } : i)),
+      )
+      setEditingId(null)
+    } else {
+      const now = new Date().toISOString()
+      setIdeas((prev) => [{ id: crypto.randomUUID(), text: text.trim(), createdAt: now }, ...prev])
+    }
     setText('')
   }
 
@@ -86,10 +104,22 @@ export function IdeasPage() {
         const dataUrl = reader.result
         if (typeof dataUrl !== 'string') return
         const now = new Date().toISOString()
-        setIdeas((prev) => [
-          { id: crypto.randomUUID(), text: 'Voice memo', audioUrl: dataUrl, createdAt: now },
-          ...prev,
-        ])
+        if (editingId) {
+          setIdeas((prev) =>
+            prev.map((i) =>
+              i.id === editingId
+                ? { ...i, audioUrl: dataUrl, text: i.text || 'Voice memo', createdAt: i.createdAt }
+                : i,
+            ),
+          )
+          setEditingId(null)
+          setText('')
+        } else {
+          setIdeas((prev) => [
+            { id: crypto.randomUUID(), text: 'Voice memo', audioUrl: dataUrl, createdAt: now },
+            ...prev,
+          ])
+        }
       }
       reader.readAsDataURL(blob)
       clearInterval(timerRef.current)
@@ -105,7 +135,12 @@ export function IdeasPage() {
     setIsRecording(false)
   }
 
-  const deleteIdea = (id: string) => setIdeas((prev) => prev.filter((i) => i.id !== id))
+  const deleteIdea = (id: string) => {
+    setIdeas((prev) => prev.filter((i) => i.id !== id))
+    if (editingId === id) clearDraft()
+  }
+
+  const isEditing = editingId !== null
 
   return (
     <div className="page-card stack">
@@ -128,14 +163,20 @@ export function IdeasPage() {
         }}
       />
 
-      <div className="row">
+      <div className="row" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
         <button className="btn-primary btn-icon" onClick={saveTextIdea} disabled={!text.trim()}>
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
             <polyline points="17 21 17 13 7 13 7 21" />
           </svg>
-          Save Note
+          {isEditing ? 'Update note' : 'Save note'}
         </button>
+
+        {isEditing && (
+          <button type="button" className="btn-ghost btn-icon" onClick={clearDraft}>
+            Cancel edit
+          </button>
+        )}
 
         {!isRecording ? (
           <button className="btn-ghost btn-icon" onClick={startRecording}>
@@ -144,7 +185,7 @@ export function IdeasPage() {
               <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
               <line x1="12" y1="19" x2="12" y2="23" />
             </svg>
-            Record Voice
+            {isEditing ? 'Replace recording' : 'Record voice'}
           </button>
         ) : (
           <button
@@ -166,26 +207,61 @@ export function IdeasPage() {
 
       <div className="stack" style={{ gap: '0.6rem' }}>
         {ideas.map((idea) => (
-          <div key={idea.id} className="idea-card">
+          <div
+            key={idea.id}
+            className="idea-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => openIdea(idea)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                openIdea(idea)
+              }
+            }}
+            style={{
+              cursor: 'pointer',
+              outline: editingId === idea.id ? '2px solid var(--accent)' : undefined,
+              outlineOffset: 2,
+            }}
+          >
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: '0.4rem' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 {formatCreatedAt(idea.createdAt)}
               </span>
-              <button
-                className="remove"
-                type="button"
-                onClick={() => deleteIdea(idea.id)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1rem' }}
-                title="Delete"
-              >
-                &times;
-              </button>
+              <div className="row" style={{ gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 600 }}>Open</span>
+                <button
+                  className="remove"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteIdea(idea.id)
+                  }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1rem' }}
+                  title="Delete"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
-            <p style={{ fontSize: '0.9rem' }}>{idea.text}</p>
-            {idea.audioUrl && <audio controls src={idea.audioUrl} style={{ marginTop: '0.5rem', width: '100%', maxWidth: '100%' }} />}
+            <p style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{idea.text}</p>
+            {idea.audioUrl && (
+              <audio
+                controls
+                src={idea.audioUrl}
+                style={{ marginTop: '0.5rem', width: '100%', maxWidth: '100%' }}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+            )}
           </div>
         ))}
       </div>
+
+      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+        Tap a saved note to open it in the editor. Use Update note to save changes.
+      </p>
 
       <style>{`
         @keyframes pulse {
