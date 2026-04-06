@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.philmcandrew.musicman',
   appName: 'MusicMan',
-  webDir: 'dist',
+  webDir: '../New UI/out',
   android: {
     allowMixedContent: false,
     webContentsDebuggingEnabled: true,
