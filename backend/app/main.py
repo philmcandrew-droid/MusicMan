@@ -38,7 +38,13 @@ app.include_router(api_router, prefix="/api/v1")
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 if STATIC_DIR.is_dir():
-    app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+    # Vite builds use /assets; Next.js static export uses /_next
+    _assets = STATIC_DIR / "assets"
+    if _assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=_assets), name="assets")
+    _next = STATIC_DIR / "_next"
+    if _next.is_dir():
+        app.mount("/_next", StaticFiles(directory=_next), name="next_static")
 
     @app.get("/{full_path:path}")
     async def serve_spa(request: Request, full_path: str):
