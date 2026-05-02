@@ -158,6 +158,44 @@ body {
   min-width: 0;
 }
 
+/* -------- Page navigation -------- */
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.page-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-nav-btn:hover {
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+  border-color: var(--border-accent);
+}
+
+.page-nav-btn svg {
+  opacity: 0.7;
+}
+
+.page-nav-btn:hover svg {
+  opacity: 1;
+}
+
 /* -------- Cards -------- */
 
 .page-card {
@@ -554,6 +592,149 @@ button {
   white-space: pre-wrap;
 }
 
+/* -------- Open tuning page -------- */
+
+.tuning-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.tuning-banner-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tuning-banner-strings {
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.tuning-quality-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--border-accent);
+  margin-bottom: 0.25rem;
+}
+
+/* -------- Home / landing page -------- */
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.home-hero {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.home-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #a78bfa, #818cf8, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.home-tagline {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
+
+.home-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-top: 0.6rem;
+  max-width: 480px;
+  margin-inline: auto;
+  line-height: 1.6;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.home-feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  font: inherit;
+  color: var(--text-primary);
+}
+
+.home-feature-card:hover {
+  border-color: var(--feature-color, var(--border-accent));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--feature-color, var(--accent)) 25%, transparent);
+  transform: translateY(-3px);
+}
+
+.home-feature-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--feature-color, var(--accent)) 14%, transparent);
+  color: var(--feature-color, var(--accent));
+}
+
+.home-feature-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.home-feature-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.home-feature-card p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.home-footer {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 1rem 0 0.5rem;
+  letter-spacing: 0.04em;
+}
+
 /* -------- Responsive -------- */
 
 @media (max-width: 768px) {
@@ -671,5 +852,31 @@ button {
   .section-pill {
     font-size: 0.75rem;
     padding: 0.4rem 0.7rem;
+  }
+
+  .page-nav {
+    margin-bottom: 0.5rem;
+  }
+
+  .page-nav-btn {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .home-title {
+    font-size: 2rem;
+  }
+
+  .home-tagline {
+    font-size: 0.95rem;
+  }
+
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .home-feature-card {
+    padding: 1rem;
   }
 }

@@ -1,3 +1,12 @@
+export function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12l9-9 9 9" />
+      <path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10" />
+    </svg>
+  )
+}
+
 export function TunerIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -12,6 +21,16 @@ export function GuitarIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 3l5 5-2.5 2.5L16 8M2 22l4.5-4.5M8.5 13.5l2-2" />
       <path d="M9.5 9a5 5 0 0 0-1 7.5 5 5 0 0 0 7.5-1l2-2a5 5 0 0 0 0-7 5 5 0 0 0-7 0l-1.5 2.5z" />
+    </svg>
+  )
+}
+
+export function OpenTuningIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 6h4M6 2v8M10 4h4M14 1v6M18 5h4M22 2v6" />
+      <rect x="2" y="12" width="20" height="10" rx="2" />
+      <path d="M6 12v10M10 12v10M14 12v10M18 12v10" />
     </svg>
   )
 }
