@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react'
 
+import { AudioPlayer } from './AudioPlayer'
 import { loadStoredIdeas, saveStoredIdeas, type StoredIdea } from './ideasStorage'
 
 type Idea = {
@@ -247,10 +248,8 @@ export function IdeasPage() {
             </div>
             <p style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{idea.text}</p>
             {idea.audioUrl && (
-              <audio
-                controls
+              <AudioPlayer
                 src={idea.audioUrl}
-                style={{ marginTop: '0.5rem', width: '100%', maxWidth: '100%' }}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
               />
