@@ -51,7 +51,9 @@ function App() {
             key={route.path}
             to={route.path}
             end={route.path === '/'}
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+            className={({ isActive }) =>
+              `nav-link${isActive ? ' active' : ''}${route.hideOnMobile ? ' desktop-only' : ''}`
+            }
           >
             <route.icon />
             {route.label}

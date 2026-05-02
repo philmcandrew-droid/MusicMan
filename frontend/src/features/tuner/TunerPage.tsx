@@ -60,29 +60,42 @@ function playReferenceTone(frequency: number) {
   if (!refAudioCtx) refAudioCtx = new AudioContext()
   const ctx = refAudioCtx
   if (ctx.state === 'suspended') ctx.resume()
+
   const masterGain = ctx.createGain()
   masterGain.gain.setValueAtTime(0, ctx.currentTime)
-  masterGain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.03)
-  masterGain.gain.setValueAtTime(0.4, ctx.currentTime + 2.5)
+  masterGain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 0.05)
+  masterGain.gain.setValueAtTime(0.7, ctx.currentTime + 2.5)
   masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 3.0)
   masterGain.connect(ctx.destination)
+
   const oscs: OscillatorNode[] = []
-  const partials = [
-    { mult: 1, g: 0.35 }, { mult: 2, g: 0.25 }, { mult: 3, g: 0.12 },
-    { mult: 4, g: 0.08 }, { mult: 5, g: 0.04 }, { mult: 0.5, g: 0.02 },
-  ]
-  for (const p of partials) {
-    const osc = ctx.createOscillator()
-    const g = ctx.createGain()
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(frequency * p.mult, ctx.currentTime)
-    g.gain.setValueAtTime(p.g, ctx.currentTime)
-    osc.connect(g)
-    g.connect(masterGain)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 3.1)
-    oscs.push(osc)
+
+  // For low strings (<150 Hz), phone speakers can't reproduce the fundamental
+  // well so we play one octave up to be clearly audible
+  const playFreq = frequency < 150 ? frequency * 2 : frequency
+
+  const osc = ctx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(playFreq, ctx.currentTime)
+  osc.connect(masterGain)
+  osc.start(ctx.currentTime)
+  osc.stop(ctx.currentTime + 3.1)
+  oscs.push(osc)
+
+  // Gentle second harmonic for a warmer tone, only if it stays audible
+  if (playFreq * 2 < 2000) {
+    const osc2 = ctx.createOscillator()
+    const g2 = ctx.createGain()
+    osc2.type = 'sine'
+    osc2.frequency.setValueAtTime(playFreq * 2, ctx.currentTime)
+    g2.gain.setValueAtTime(0.15, ctx.currentTime)
+    osc2.connect(g2)
+    g2.connect(masterGain)
+    osc2.start(ctx.currentTime)
+    osc2.stop(ctx.currentTime + 3.1)
+    oscs.push(osc2)
   }
+
   refActiveNodes = { oscs, gain: masterGain }
   oscs[0].onended = () => { if (refActiveNodes?.oscs[0] === oscs[0]) refActiveNodes = null }
 }

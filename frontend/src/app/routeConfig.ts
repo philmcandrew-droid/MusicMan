@@ -18,6 +18,7 @@ export type AppRoute = {
   label: string
   component: ComponentType
   icon: ComponentType
+  hideOnMobile?: boolean
 }
 
 export const appRoutes: AppRoute[] = [
@@ -31,6 +32,6 @@ export const appRoutes: AppRoute[] = [
   { path: '/ideas', label: 'Ideas', component: IdeasPage, icon: IdeaIcon },
   { path: '/circle-of-fifths', label: 'Circle', component: CircleOfFifthsPage, icon: CircleIcon },
   { path: '/ai-coach', label: 'Coach', component: AICoachPage, icon: AIIcon },
-  { path: '/settings', label: 'Settings', component: SettingsPage, icon: SettingsIcon },
-  { path: '/about', label: 'About', component: AboutPage, icon: AboutIcon },
+  { path: '/settings', label: 'Settings', component: SettingsPage, icon: SettingsIcon, hideOnMobile: true },
+  { path: '/about', label: 'About', component: AboutPage, icon: AboutIcon, hideOnMobile: true },
 ]
