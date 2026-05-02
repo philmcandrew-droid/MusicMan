@@ -138,6 +138,31 @@ const features = [
     ),
     color: '#a78bfa',
   },
+  {
+    path: '/settings',
+    title: 'Settings',
+    desc: 'Customise your experience.',
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="24" cy="24" r="8" />
+        <path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.86 9.86l4.24 4.24M33.9 33.9l4.24 4.24M9.86 38.14l4.24-4.24M33.9 14.1l4.24-4.24" />
+      </svg>
+    ),
+    color: '#64748b',
+  },
+  {
+    path: '/about',
+    title: 'Help & About',
+    desc: 'FAQs, tips, and app info.',
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="24" cy="24" r="18" />
+        <path d="M18 18a6 6 0 0 1 11.2 3c0 4-6 4-6 8" />
+        <circle cx="24" cy="36" r="1.5" fill="currentColor" />
+      </svg>
+    ),
+    color: '#38bdf8',
+  },
 ]
 
 export function HomePage() {
@@ -146,6 +171,13 @@ export function HomePage() {
   return (
     <div className="home-page">
       <div className="home-hero">
+        <svg className="home-floating-notes" width="280" height="60" viewBox="0 0 280 60" fill="none" aria-hidden="true">
+          <text x="20" y="35" fontSize="24" fill="currentColor" opacity="0.08" style={{ animation: 'float-note 3s ease-in-out infinite' }}>&#9835;</text>
+          <text x="70" y="25" fontSize="18" fill="currentColor" opacity="0.06" style={{ animation: 'float-note 4s ease-in-out 0.5s infinite' }}>&#9834;</text>
+          <text x="130" y="40" fontSize="28" fill="currentColor" opacity="0.07" style={{ animation: 'float-note 3.5s ease-in-out 1s infinite' }}>&#9833;</text>
+          <text x="200" y="20" fontSize="20" fill="currentColor" opacity="0.06" style={{ animation: 'float-note 4.5s ease-in-out 0.3s infinite' }}>&#9835;</text>
+          <text x="250" y="45" fontSize="16" fill="currentColor" opacity="0.08" style={{ animation: 'float-note 3.8s ease-in-out 0.8s infinite' }}>&#9834;</text>
+        </svg>
         <h1 className="home-title">MusicMan</h1>
         <p className="home-tagline">Your all-in-one musician assistant</p>
       </div>
@@ -165,7 +197,7 @@ export function HomePage() {
         ))}
       </div>
 
-      <p className="home-footer">Built by Phil McAndrew</p>
+      <p className="home-footer">Built by Phil McAndrew &middot; v1.5</p>
     </div>
   )
 }

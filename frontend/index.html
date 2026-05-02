@@ -10,6 +10,9 @@
     <title>MusicMan</title>
   </head>
   <body>
+    <script>
+      (function(){var d=localStorage.getItem('musicman-dark-mode');document.documentElement.setAttribute('data-theme',d==='false'?'light':'dark')})()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

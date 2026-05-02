@@ -57,8 +57,19 @@ export function GuitarChordLibraryPage() {
         Pick a key and type to browse chords. Narrow by CAGED position.
       </p>
 
+      <svg width="100%" height="24" viewBox="0 0 600 24" preserveAspectRatio="none" aria-hidden="true" style={{ opacity: 0.15, marginBottom: '-0.5rem' }}>
+        <line x1="0" y1="8" x2="600" y2="8" stroke="currentColor" strokeWidth="1" />
+        <line x1="0" y1="12" x2="600" y2="12" stroke="currentColor" strokeWidth="1" />
+        <line x1="0" y1="16" x2="600" y2="16" stroke="currentColor" strokeWidth="1" />
+        <line x1="0" y1="20" x2="600" y2="20" stroke="currentColor" strokeWidth="1" />
+        <line x1="0" y1="24" x2="600" y2="24" stroke="currentColor" strokeWidth="1" />
+        <circle cx="120" cy="12" r="4" fill="var(--accent)" opacity="0.6" />
+        <circle cx="240" cy="20" r="4" fill="var(--accent)" opacity="0.4" />
+        <circle cx="400" cy="16" r="4" fill="var(--accent)" opacity="0.5" />
+      </svg>
+
       {/* Key filter */}
-      <div>
+      <div className="glass-panel">
         <span className="section-label">Key</span>
         <div className="chip-group">
           {ROOTS.map((r) => (
@@ -74,7 +85,7 @@ export function GuitarChordLibraryPage() {
       </div>
 
       {/* Type filter */}
-      <div>
+      <div className="glass-panel">
         <span className="section-label">Type</span>
         <div className="chip-group">
           {QUALITIES.map((q) => (
@@ -91,7 +102,7 @@ export function GuitarChordLibraryPage() {
 
       {/* CAGED shape filter */}
       {showCagedRow && (
-        <div>
+        <div className="glass-panel">
           <span className="section-label">CAGED Position</span>
           <div className="chip-group">
             {CAGED_SHAPES.map((s) => (

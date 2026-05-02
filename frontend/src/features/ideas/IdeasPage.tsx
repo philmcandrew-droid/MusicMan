@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AudioPlayer } from './AudioPlayer'
 import { loadStoredIdeas, saveStoredIdeas, type StoredIdea } from './ideasStorage'
@@ -12,15 +12,8 @@ type Idea = {
 
 function fmtDate(iso: string) {
   try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return iso
-  }
+    return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  } catch { return iso }
 }
 
 function fmtTimer(s: number) {
@@ -30,8 +23,7 @@ function fmtTimer(s: number) {
 }
 
 function truncate(s: string, max: number) {
-  if (s.length <= max) return s
-  return s.slice(0, max).trimEnd() + '…'
+  return s.length <= max ? s : s.slice(0, max).trimEnd() + '…'
 }
 
 function toStored(ideas: Idea[]): StoredIdea[] {
@@ -45,6 +37,18 @@ function fromStored(rows: StoredIdea[]): Idea[] {
 function readIdeasFromStorage(): Idea[] {
   if (typeof window === 'undefined') return []
   return fromStored(loadStoredIdeas())
+}
+
+function createReverbIR(ctx: AudioContext, duration = 2.5, decay = 3): AudioBuffer {
+  const length = ctx.sampleRate * duration
+  const buf = ctx.createBuffer(2, length, ctx.sampleRate)
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buf.getChannelData(ch)
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay)
+    }
+  }
+  return buf
 }
 
 function TapeReel({ spinning, size = 72 }: { spinning: boolean; size?: number }) {
@@ -71,9 +75,38 @@ export function IdeasPage() {
   const [persistError, setPersistError] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [recTime, setRecTime] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Deck playback state
+  const [deckAudioUrl, setDeckAudioUrl] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playTime, setPlayTime] = useState(0)
+  const [reverbOn, setReverbOn] = useState(false)
+  const [reverbAmt, setReverbAmt] = useState(40)
+  const [delayOn, setDelayOn] = useState(false)
+  const [delayAmt, setDelayAmt] = useState(35)
+  const [eqBass, setEqBass] = useState(0)
+  const [eqMid, setEqMid] = useState(0)
+  const [eqTreble, setEqTreble] = useState(0)
+
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<BlobPart[]>([])
-  const timerRef = useRef(0)
+  const recTimerRef = useRef(0)
+  const deckCtxRef = useRef<AudioContext | null>(null)
+  const deckSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const playTimerRef = useRef(0)
+
+  const fxRef = useRef<{
+    bass: BiquadFilterNode
+    mid: BiquadFilterNode
+    treble: BiquadFilterNode
+    delayNode: DelayNode
+    delayWet: GainNode
+    delayDry: GainNode
+    delayFeedback: GainNode
+    reverbWet: GainNode
+    reverbDry: GainNode
+  } | null>(null)
 
   useEffect(() => {
     try {
@@ -84,17 +117,179 @@ export function IdeasPage() {
     }
   }, [ideas])
 
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(0)
+      clearInterval(playTimerRef.current)
+      deckSourceRef.current?.stop()
+      deckCtxRef.current?.close()
+    }
+  }, [])
+
+  // Live-update EQ during playback
+  useEffect(() => {
+    const fx = fxRef.current
+    if (!fx) return
+    fx.bass.gain.value = eqBass
+    fx.mid.gain.value = eqMid
+    fx.treble.gain.value = eqTreble
+  }, [eqBass, eqMid, eqTreble])
+
+  // Live-update delay params during playback
+  useEffect(() => {
+    const fx = fxRef.current
+    if (!fx) return
+    const mix = delayOn ? delayAmt / 100 : 0
+    fx.delayDry.gain.value = 1 - mix * 0.4
+    fx.delayNode.delayTime.value = 0.15 + (delayAmt / 100) * 0.45
+    fx.delayWet.gain.value = mix * 0.7
+    fx.delayFeedback.gain.value = mix * 0.55
+  }, [delayOn, delayAmt])
+
+  // Live-update reverb params during playback
+  useEffect(() => {
+    const fx = fxRef.current
+    if (!fx) return
+    const mix = reverbOn ? reverbAmt / 100 : 0
+    fx.reverbDry.gain.value = 1 - mix * 0.5
+    fx.reverbWet.gain.value = mix * 0.7
+  }, [reverbOn, reverbAmt])
+
   const editingIdea = editingId ? ideas.find((i) => i.id === editingId) ?? null : null
   const isEditing = editingId !== null
+  const reelsActive = isRecording || isPlaying
+
+  const stopDeck = useCallback(() => {
+    try { deckSourceRef.current?.stop() } catch {}
+    deckSourceRef.current = null
+    deckCtxRef.current?.close()
+    deckCtxRef.current = null
+    clearInterval(playTimerRef.current)
+    setIsPlaying(false)
+    setPlayTime(0)
+  }, [])
+
+  const playDeck = useCallback(async () => {
+    const url = deckAudioUrl
+    if (!url) return
+    stopDeck()
+    fxRef.current = null
+
+    const ctx = new AudioContext()
+    deckCtxRef.current = ctx
+
+    let arrayBuf: ArrayBuffer
+    try {
+      const resp = await fetch(url)
+      arrayBuf = await resp.arrayBuffer()
+    } catch {
+      ctx.close()
+      return
+    }
+
+    let audioBuf: AudioBuffer
+    try {
+      audioBuf = await ctx.decodeAudioData(arrayBuf)
+    } catch {
+      ctx.close()
+      return
+    }
+
+    const source = ctx.createBufferSource()
+    source.buffer = audioBuf
+    deckSourceRef.current = source
+
+    // EQ stage (always active)
+    const bass = ctx.createBiquadFilter()
+    bass.type = 'lowshelf'
+    bass.frequency.value = 200
+    bass.gain.value = eqBass
+
+    const mid = ctx.createBiquadFilter()
+    mid.type = 'peaking'
+    mid.frequency.value = 1000
+    mid.Q.value = 0.8
+    mid.gain.value = eqMid
+
+    const treble = ctx.createBiquadFilter()
+    treble.type = 'highshelf'
+    treble.frequency.value = 4000
+    treble.gain.value = eqTreble
+
+    source.connect(bass)
+    bass.connect(mid)
+    mid.connect(treble)
+
+    // Delay stage (always wired, controlled by gain nodes)
+    const dMix = delayOn ? delayAmt / 100 : 0
+    const delayDry = ctx.createGain()
+    delayDry.gain.value = 1 - dMix * 0.4
+    const delayNode = ctx.createDelay(1)
+    delayNode.delayTime.value = 0.15 + (delayAmt / 100) * 0.45
+    const delayWet = ctx.createGain()
+    delayWet.gain.value = dMix * 0.7
+    const delayFeedback = ctx.createGain()
+    delayFeedback.gain.value = dMix * 0.55
+    const delayMerge = ctx.createGain()
+
+    treble.connect(delayDry)
+    treble.connect(delayNode)
+    delayNode.connect(delayWet)
+    delayNode.connect(delayFeedback)
+    delayFeedback.connect(delayNode)
+    delayDry.connect(delayMerge)
+    delayWet.connect(delayMerge)
+
+    // Reverb stage (always wired, controlled by gain nodes)
+    const rMix = reverbOn ? reverbAmt / 100 : 0
+    const reverbDry = ctx.createGain()
+    reverbDry.gain.value = 1 - rMix * 0.5
+    const convolver = ctx.createConvolver()
+    convolver.buffer = createReverbIR(ctx, 3, 3)
+    const reverbWet = ctx.createGain()
+    reverbWet.gain.value = rMix * 0.7
+    const reverbMerge = ctx.createGain()
+
+    delayMerge.connect(reverbDry)
+    delayMerge.connect(convolver)
+    convolver.connect(reverbWet)
+    reverbDry.connect(reverbMerge)
+    reverbWet.connect(reverbMerge)
+
+    reverbMerge.connect(ctx.destination)
+
+    fxRef.current = { bass, mid, treble, delayNode, delayWet, delayDry, delayFeedback, reverbWet, reverbDry }
+
+    source.onended = () => {
+      clearInterval(playTimerRef.current)
+      setIsPlaying(false)
+      setPlayTime(0)
+      fxRef.current = null
+    }
+
+    const startTime = ctx.currentTime
+    source.start()
+    setIsPlaying(true)
+    setPlayTime(0)
+    playTimerRef.current = window.setInterval(() => {
+      if (deckCtxRef.current) {
+        setPlayTime(Math.floor(deckCtxRef.current.currentTime - startTime))
+      }
+    }, 250)
+  }, [deckAudioUrl, stopDeck, eqBass, eqMid, eqTreble, delayOn, delayAmt, reverbOn, reverbAmt])
 
   const clearDraft = () => {
     setText('')
     setEditingId(null)
+    stopDeck()
+    setDeckAudioUrl(null)
   }
 
   const openIdea = (idea: Idea) => {
+    stopDeck()
     setText(idea.text)
     setEditingId(idea.id)
+    setDeckAudioUrl(idea.audioUrl || null)
   }
 
   const saveTextIdea = () => {
@@ -106,9 +301,12 @@ export function IdeasPage() {
       setIdeas((prev) => [{ id: crypto.randomUUID(), text: text.trim(), createdAt: new Date().toISOString() }, ...prev])
     }
     setText('')
+    stopDeck()
+    setDeckAudioUrl(null)
   }
 
   const startRecording = async () => {
+    stopDeck()
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     const recorder = new MediaRecorder(stream)
     recorderRef.current = recorder
@@ -121,6 +319,7 @@ export function IdeasPage() {
       reader.onloadend = () => {
         const dataUrl = reader.result
         if (typeof dataUrl !== 'string') return
+        setDeckAudioUrl(dataUrl)
         if (editingId) {
           setIdeas((prev) =>
             prev.map((i) => (i.id === editingId ? { ...i, audioUrl: dataUrl, text: i.text || 'Voice memo' } : i)),
@@ -134,12 +333,12 @@ export function IdeasPage() {
         }
       }
       reader.readAsDataURL(blob)
-      clearInterval(timerRef.current)
+      clearInterval(recTimerRef.current)
       stream.getTracks().forEach((t) => t.stop())
     }
     recorder.start()
     setIsRecording(true)
-    timerRef.current = window.setInterval(() => setRecTime((t) => t + 1), 1000)
+    recTimerRef.current = window.setInterval(() => setRecTime((t) => t + 1), 1000)
   }
 
   const stopRecording = () => {
@@ -151,6 +350,23 @@ export function IdeasPage() {
     setIdeas((prev) => prev.filter((i) => i.id !== id))
     if (editingId === id) clearDraft()
   }
+
+  const toggleReverb = () => setReverbOn((v) => !v)
+  const toggleDelay = () => setDelayOn((v) => !v)
+
+  const hasDeckAudio = !!deckAudioUrl
+
+  const filteredIdeas = searchQuery.trim()
+    ? ideas.filter((i) => i.text.toLowerCase().includes(searchQuery.toLowerCase()))
+    : ideas
+
+  // Determine status text
+  let statusText = '■ READY'
+  let statusClass = ''
+  if (isRecording) { statusText = '● REC'; statusClass = ' rec' }
+  else if (isPlaying) { statusText = '▶ PLAY'; statusClass = ' play' }
+  else if (hasDeckAudio) { statusText = '▮▮ STOP'; statusClass = '' }
+  else if (isEditing) { statusText = '✎ EDIT'; statusClass = '' }
 
   return (
     <div className="page-card stack ideas-page">
@@ -164,44 +380,128 @@ export function IdeasPage() {
       {/* ===== TAPE DECK ===== */}
       <div className="tape-deck">
         <div className="tape-window">
-          <TapeReel spinning={isRecording} size={68} />
+          <TapeReel spinning={reelsActive} size={68} />
           <div className="tape-middle">
             <div className="tape-path">
-              <div className={`tape-path-line${isRecording ? ' recording' : ''}`} />
+              <div className={`tape-path-line${isRecording ? ' recording' : isPlaying ? ' playing' : ''}`} />
             </div>
             <div className="tape-led-row">
-              <span className={`tape-led${isRecording ? ' on' : ''}`} />
-              <span className={`tape-led${isRecording ? ' on delay1' : ''}`} />
-              <span className={`tape-led${isRecording ? ' on delay2' : ''}`} />
-              <span className={`tape-led${isRecording ? ' on delay3' : ''}`} />
-              <span className={`tape-led${isRecording ? ' on delay4' : ''}`} />
+              {[0, 1, 2, 3, 4].map((i) => (
+                <span key={i} className={`tape-led${reelsActive ? ` on${i > 0 ? ` delay${i}` : ''}` : ''}`} />
+              ))}
             </div>
           </div>
-          <TapeReel spinning={isRecording} size={68} />
+          <TapeReel spinning={reelsActive} size={68} />
         </div>
 
         <div className="tape-display">
-          <span className={`tape-status${isRecording ? ' rec' : ''}`}>
-            {isRecording ? '● REC' : isEditing ? '✎ EDIT' : '■ READY'}
+          <span className={`tape-status${statusClass}`}>{statusText}</span>
+          <span className="tape-timer">
+            {isRecording ? fmtTimer(recTime) : isPlaying ? fmtTimer(playTime) : hasDeckAudio ? '▶ READY' : '00:00'}
           </span>
-          <span className="tape-timer">{isRecording ? fmtTimer(recTime) : '00:00'}</span>
         </div>
 
+        {/* Transport controls */}
         <div className="tape-controls">
-          {!isRecording ? (
+          {!isRecording && !isPlaying && (
             <button className="tape-btn tape-rec" onClick={startRecording} title="Record">
               <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8" /></svg>
             </button>
-          ) : (
-            <button className="tape-btn tape-stop" onClick={stopRecording} title="Stop">
+          )}
+          {isRecording && (
+            <button className="tape-btn tape-stop" onClick={stopRecording} title="Stop recording">
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
+            </button>
+          )}
+          {!isRecording && hasDeckAudio && !isPlaying && (
+            <button className="tape-btn tape-play" onClick={playDeck} title="Play">
+              <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20" /></svg>
+            </button>
+          )}
+          {isPlaying && (
+            <button className="tape-btn tape-stop" onClick={stopDeck} title="Stop playback">
               <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
             </button>
           )}
         </div>
 
-        {isEditing && editingIdea?.audioUrl && !isRecording && (
+        {/* Effects strip */}
+        <div className="tape-fx-strip">
+          <span className="tape-fx-label">FX</span>
+
+          <div className={`tape-fx-channel${reverbOn ? ' active' : ''}`}>
+            <button className={`tape-fx-btn${reverbOn ? ' active' : ''}`} onClick={toggleReverb} title="Toggle reverb">
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12c0-4 3-8 10-8s10 4 10 8-3 8-10 8S2 16 2 12z" /><circle cx="12" cy="12" r="2" fill="currentColor" /></svg>
+              Reverb
+            </button>
+            {reverbOn && (
+              <div className="tape-knob-wrap">
+                <input
+                  type="range" className="tape-knob" min={5} max={100} value={reverbAmt}
+                  onChange={(e) => setReverbAmt(Number(e.target.value))}
+                  title={`Reverb: ${reverbAmt}%`}
+                />
+                <span className="tape-knob-val">{reverbAmt}%</span>
+              </div>
+            )}
+          </div>
+
+          <div className={`tape-fx-channel${delayOn ? ' active' : ''}`}>
+            <button className={`tape-fx-btn${delayOn ? ' active' : ''}`} onClick={toggleDelay} title="Toggle delay">
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12h16" /><path d="M8 8h12" opacity="0.5" /><path d="M12 4h8" opacity="0.25" /></svg>
+              Delay
+            </button>
+            {delayOn && (
+              <div className="tape-knob-wrap">
+                <input
+                  type="range" className="tape-knob" min={5} max={100} value={delayAmt}
+                  onChange={(e) => setDelayAmt(Number(e.target.value))}
+                  title={`Delay: ${delayAmt}%`}
+                />
+                <span className="tape-knob-val">{delayAmt}%</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* EQ panel */}
+        <div className="tape-eq-panel">
+          <span className="tape-eq-title">EQ</span>
+          <div className="tape-eq-bands">
+            <div className="tape-eq-band">
+              <input
+                type="range" className="tape-eq-slider" min={-12} max={12} step={1} value={eqBass}
+                onChange={(e) => setEqBass(Number(e.target.value))}
+                title={`Bass: ${eqBass > 0 ? '+' : ''}${eqBass} dB`}
+              />
+              <span className="tape-eq-val">{eqBass > 0 ? '+' : ''}{eqBass}</span>
+              <span className="tape-eq-label">Bass</span>
+            </div>
+            <div className="tape-eq-band">
+              <input
+                type="range" className="tape-eq-slider" min={-12} max={12} step={1} value={eqMid}
+                onChange={(e) => setEqMid(Number(e.target.value))}
+                title={`Mid: ${eqMid > 0 ? '+' : ''}${eqMid} dB`}
+              />
+              <span className="tape-eq-val">{eqMid > 0 ? '+' : ''}{eqMid}</span>
+              <span className="tape-eq-label">Mid</span>
+            </div>
+            <div className="tape-eq-band">
+              <input
+                type="range" className="tape-eq-slider" min={-12} max={12} step={1} value={eqTreble}
+                onChange={(e) => setEqTreble(Number(e.target.value))}
+                title={`Treble: ${eqTreble > 0 ? '+' : ''}${eqTreble} dB`}
+              />
+              <span className="tape-eq-val">{eqTreble > 0 ? '+' : ''}{eqTreble}</span>
+              <span className="tape-eq-label">Treble</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Inline playback for editing (without effects — use deck play for effects) */}
+        {isEditing && editingIdea?.audioUrl && !isRecording && !isPlaying && (
           <div className="tape-playback">
-            <span className="tape-playback-label">Saved recording</span>
+            <span className="tape-playback-label">Saved recording (dry)</span>
             <AudioPlayer src={editingIdea.audioUrl} />
           </div>
         )}
@@ -213,9 +513,7 @@ export function IdeasPage() {
           <span className="cassette-label-title">
             {isEditing ? `Editing: ${truncate(editingIdea!.text.split('\n')[0], 30)}` : 'New Idea'}
           </span>
-          {isEditing && (
-            <span className="cassette-label-date">{fmtDate(editingIdea!.createdAt)}</span>
-          )}
+          {isEditing && <span className="cassette-label-date">{fmtDate(editingIdea!.createdAt)}</span>}
         </div>
         <textarea
           rows={3}
@@ -223,9 +521,7 @@ export function IdeasPage() {
           placeholder={isEditing ? 'Edit your idea…' : 'Lyrics, riff ideas, arrangement notes…'}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveTextIdea()
-          }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveTextIdea() }}
         />
         <div className="cassette-actions">
           <button className="btn-primary btn-icon" onClick={saveTextIdea} disabled={!text.trim()}>
@@ -235,9 +531,7 @@ export function IdeasPage() {
             </svg>
             {isEditing ? 'Update' : 'Save'}
           </button>
-          {isEditing && (
-            <button type="button" className="btn-ghost btn-icon" onClick={clearDraft}>Cancel</button>
-          )}
+          {isEditing && <button type="button" className="btn-ghost btn-icon" onClick={clearDraft}>Cancel</button>}
           <span className="cassette-count">{ideas.length} tape{ideas.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
@@ -249,8 +543,24 @@ export function IdeasPage() {
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="3" /><circle cx="8" cy="12" r="3" /><circle cx="16" cy="12" r="3" /><path d="M11 12h2" /></svg>
             Tape Collection
           </h3>
+
+          {/* Search */}
+          <div className="tape-search">
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            <input
+              type="text"
+              className="tape-search-input"
+              placeholder="Search tapes…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="tape-search-clear" onClick={() => setSearchQuery('')} type="button">&times;</button>
+            )}
+          </div>
+
           <div className="tape-list">
-            {ideas.map((idea) => {
+            {filteredIdeas.map((idea) => {
               const active = editingId === idea.id
               return (
                 <div
@@ -302,6 +612,11 @@ export function IdeasPage() {
                 </div>
               )
             })}
+            {filteredIdeas.length === 0 && searchQuery && (
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem 0' }}>
+                No tapes match "{searchQuery}"
+              </p>
+            )}
           </div>
         </div>
       )}

@@ -73,16 +73,20 @@ export function PianoChordBuilderPage() {
 
       {/* Chord info */}
       <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', padding: '1rem 1.5rem', border: '1px solid var(--border)' }}>
-          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--accent)' }}>{chordSymbol}</p>
+        <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', padding: '1rem 1.5rem', border: '1px solid var(--border-accent)', boxShadow: '0 0 24px var(--accent-glow)', textAlign: 'center', minWidth: 100 }}>
+          <p style={{ fontSize: '2.2rem', fontWeight: 800, background: 'linear-gradient(135deg, #a78bfa, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{chordSymbol}</p>
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{formula.label}</p>
         </div>
         <div className="stack" style={{ gap: '0.3rem' }}>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             <strong>Notes:</strong> {notes.join(' — ')}
           </p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <strong>Intervals:</strong> {intervals.join(' — ')}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Intervals:</span>
+            {intervals.map((iv, i) => (
+              <span key={i} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.15rem 0.45rem', borderRadius: 'var(--radius-full)', background: i === 0 ? 'var(--accent)' : 'var(--accent-subtle)', color: i === 0 ? '#fff' : 'var(--accent)', border: `1px solid ${i === 0 ? 'var(--accent)' : 'var(--border-accent)'}` }}>{iv}</span>
+            ))}
+          </div>
           <div className="row" style={{ gap: '0.4rem' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Inversion:</span>
             {Array.from({ length: notes.length }).map((_, i) => (

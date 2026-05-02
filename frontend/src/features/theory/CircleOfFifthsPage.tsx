@@ -171,15 +171,15 @@ export function CircleOfFifthsPage() {
             </div>
           </div>
 
-          <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', border: '1px solid var(--border)' }}>
-            <p className="section-label">How to use this</p>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+          <details style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', padding: '1rem 1.25rem', border: '1px solid var(--border)' }}>
+            <summary style={{ cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>How to use this</summary>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginTop: '0.65rem' }}>
               The <strong>dominant (V)</strong> chord creates tension that wants to resolve back to the tonic.
               The <strong>subdominant (IV)</strong> adds smooth contrast.
               Together, <strong>I — IV — V</strong> is the backbone of countless songs.
               Adjacent keys on the circle share 6 of 7 notes, making modulation between them sound natural.
             </p>
-          </div>
+          </details>
         </div>
       </div>
     </div>

@@ -57,8 +57,17 @@ export function PianoChordLibraryPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Piano Chords</h2>
-      <p className="page-subtitle">Visual chord reference with mini keyboard diagrams. Click keys or press Play to hear chords.</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15))', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5">
+            <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M6 4v10M10 4v10M14 4v10M18 4v10M2 14h20" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="page-title" style={{ marginBottom: 0 }}>Piano Chords</h2>
+          <p className="page-subtitle">Visual reference with mini keyboards. Tap Play to hear chords.</p>
+        </div>
+      </div>
 
       <div className="row" style={{ gap: '0.75rem' }}>
         <input
@@ -114,8 +123,9 @@ export function PianoChordLibraryPage() {
                     cursor: 'pointer',
                     border: '1px solid',
                     transition: 'all 0.2s',
-                    background: isPlaying ? '#7c3aed' : 'transparent',
-                    borderColor: isPlaying ? '#7c3aed' : 'var(--border)',
+                    background: isPlaying ? 'linear-gradient(135deg, #8b5cf6, #6366f1)' : 'transparent',
+                    borderColor: isPlaying ? '#8b5cf6' : 'var(--border)',
+                    boxShadow: isPlaying ? '0 0 16px rgba(139, 92, 246, 0.4)' : 'none',
                     color: isPlaying ? '#fff' : 'var(--text-secondary)',
                   }}
                 >

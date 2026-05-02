@@ -9,13 +9,20 @@ export function SettingsPage() {
   const [sensitivity, setSensitivity] = useState(50)
   const [referenceA, setReferenceA] = useState(440)
   const [autoDetect, setAutoDetect] = useState(true)
-  const [darkMode, setDarkMode] = useState(true)
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('musicman-dark-mode')
+    return saved !== null ? saved === 'true' : true
+  })
   const [leftHanded, setLeftHanded] = useState(false)
-  const [notifications, setNotifications] = useState(true)
   const [inputDevices, setInputDevices] = useState<AudioDevice[]>([])
   const [outputDevices, setOutputDevices] = useState<AudioDevice[]>([])
   const [selectedInput, setSelectedInput] = useState('')
   const [selectedOutput, setSelectedOutput] = useState('')
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
+    localStorage.setItem('musicman-dark-mode', String(darkMode))
+  }, [darkMode])
 
   useEffect(() => {
     async function loadDevices() {
@@ -91,6 +98,8 @@ export function SettingsPage() {
         </label>
       </div>
 
+      <div className="gradient-divider" />
+
       {/* Audio Settings */}
       <div className="settings-group">
         <div className="settings-group-header">
@@ -132,6 +141,8 @@ export function SettingsPage() {
         </div>
       </div>
 
+      <div className="gradient-divider" />
+
       {/* Guitar Settings */}
       <div className="settings-group">
         <div className="settings-group-header">
@@ -152,6 +163,8 @@ export function SettingsPage() {
           <input type="checkbox" className="settings-toggle" checked={leftHanded} onChange={(e) => setLeftHanded(e.target.checked)} />
         </label>
       </div>
+
+      <div className="gradient-divider" />
 
       {/* Appearance */}
       <div className="settings-group">
@@ -174,26 +187,7 @@ export function SettingsPage() {
         </label>
       </div>
 
-      {/* Notifications */}
-      <div className="settings-group">
-        <div className="settings-group-header">
-          <div className="settings-group-icon" style={{ '--sg-color': '#ec4899' } as React.CSSProperties}>
-            <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-          </div>
-          <div>
-            <h3 className="settings-group-name">Notifications</h3>
-            <p className="settings-group-desc">Manage your notification preferences</p>
-          </div>
-        </div>
-
-        <label className="settings-row">
-          <div>
-            <span className="settings-label">Practice Reminders</span>
-            <span className="settings-desc">Get reminded to practice daily</span>
-          </div>
-          <input type="checkbox" className="settings-toggle" checked={notifications} onChange={(e) => setNotifications(e.target.checked)} />
-        </label>
-      </div>
+      <div className="gradient-divider" />
 
       {/* Data */}
       <div className="settings-group">

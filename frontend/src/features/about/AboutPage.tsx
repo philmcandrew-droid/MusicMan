@@ -39,8 +39,17 @@ export function AboutPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Help Center</h2>
-      <p className="page-subtitle">Everything you need to know about MusicMan.</p>
+      <div style={{ textAlign: 'center', position: 'relative' }}>
+        <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', top: '-10px', left: 0, opacity: 0.08 }}>
+          <text x="40" y="30" fontSize="28" fill="currentColor">&#9835;</text>
+          <text x="120" y="20" fontSize="22" fill="currentColor">&#9834;</text>
+          <text x="200" y="35" fontSize="32" fill="currentColor">&#9833;</text>
+          <text x="290" y="18" fontSize="24" fill="currentColor">&#9835;</text>
+          <text x="360" y="30" fontSize="20" fill="currentColor">&#9834;</text>
+        </svg>
+        <h2 className="page-title">Help Center</h2>
+        <p className="page-subtitle" style={{ display: 'inline-block' }}>Everything you need to know about MusicMan.</p>
+      </div>
 
       {/* Features overview */}
       <div>
@@ -79,7 +88,7 @@ export function AboutPage() {
       </div>
 
       {/* About section */}
-      <div className="help-about-card">
+      <div className="help-about-card" style={{ border: '2px solid var(--border-accent)', boxShadow: '0 0 24px var(--accent-glow)' }}>
         <div className="about-logo">
           <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
@@ -91,7 +100,7 @@ export function AboutPage() {
           instruments, learn chords, build songs, and improve your musical skills.
         </p>
         <p className="help-about-dev">Developed by Phil McAndrew</p>
-        <span className="help-about-version">Version 1.1</span>
+        <span className="help-about-version">Version 1.5</span>
       </div>
 
       <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
