@@ -57,7 +57,7 @@ export function PianoChordLibraryPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Piano Chord Library</h2>
+      <h2 className="page-title">Piano Chords</h2>
       <p className="page-subtitle">Visual chord reference with mini keyboard diagrams. Click keys or press Play to hear chords.</p>
 
       <div className="row" style={{ gap: '0.75rem' }}>

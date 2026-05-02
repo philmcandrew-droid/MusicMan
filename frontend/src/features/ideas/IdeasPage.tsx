@@ -23,6 +23,11 @@ function formatCreatedAt(iso: string) {
   }
 }
 
+function truncate(s: string, max: number) {
+  if (s.length <= max) return s
+  return s.slice(0, max).trimEnd() + '…'
+}
+
 function toStored(ideas: Idea[]): StoredIdea[] {
   return ideas.map((i) => ({
     id: i.id,
@@ -56,6 +61,7 @@ export function IdeasPage() {
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<BlobPart[]>([])
   const timerRef = useRef(0)
+  const editorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     try {
@@ -66,6 +72,8 @@ export function IdeasPage() {
     }
   }, [ideas])
 
+  const editingIdea = editingId ? ideas.find((i) => i.id === editingId) ?? null : null
+
   const clearDraft = () => {
     setText('')
     setEditingId(null)
@@ -74,6 +82,7 @@ export function IdeasPage() {
   const openIdea = (idea: Idea) => {
     setText(idea.text)
     setEditingId(idea.id)
+    setTimeout(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   const saveTextIdea = () => {
@@ -113,8 +122,6 @@ export function IdeasPage() {
                 : i,
             ),
           )
-          setEditingId(null)
-          setText('')
         } else {
           setIdeas((prev) => [
             { id: crypto.randomUUID(), text: 'Voice memo', audioUrl: dataUrl, createdAt: now },
@@ -142,11 +149,23 @@ export function IdeasPage() {
   }
 
   const isEditing = editingId !== null
+  const editTitle = editingIdea ? truncate(editingIdea.text.split('\n')[0], 40) : ''
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Idea Capture</h2>
-      <p className="page-subtitle">Jot down lyrics, riff ideas, or record voice memos on the fly.</p>
+      <div ref={editorRef}>
+        <h2 className="page-title">
+          Idea Capture
+          {isEditing && editTitle && (
+            <span className="idea-editing-label"> — {editTitle}</span>
+          )}
+        </h2>
+        <p className="page-subtitle">
+          {isEditing
+            ? 'Editing your idea. Update the text or replace the recording below.'
+            : 'Jot down lyrics, riff ideas, or record voice memos on the fly.'}
+        </p>
+      </div>
 
       {persistError && (
         <p style={{ color: 'var(--danger, #ef4444)', fontSize: '0.85rem' }} role="alert">
@@ -154,9 +173,31 @@ export function IdeasPage() {
         </p>
       )}
 
+      {isEditing && (
+        <div className="idea-edit-banner">
+          <div className="idea-edit-banner-header">
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            <span>Editing: <strong>{editTitle}</strong></span>
+            <span className="idea-edit-banner-date">{formatCreatedAt(editingIdea!.createdAt)}</span>
+            <button type="button" className="idea-edit-close" onClick={clearDraft} title="Close">
+              &times;
+            </button>
+          </div>
+          {editingIdea!.audioUrl && (
+            <div className="idea-edit-audio">
+              <span className="idea-edit-audio-label">Saved recording</span>
+              <AudioPlayer src={editingIdea!.audioUrl} />
+            </div>
+          )}
+        </div>
+      )}
+
       <textarea
         rows={4}
-        placeholder="Type lyrics, hook ideas, arrangement notes..."
+        placeholder={isEditing ? 'Edit your idea text...' : 'Type lyrics, hook ideas, arrangement notes...'}
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -170,12 +211,12 @@ export function IdeasPage() {
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
             <polyline points="17 21 17 13 7 13 7 21" />
           </svg>
-          {isEditing ? 'Update note' : 'Save note'}
+          {isEditing ? 'Update' : 'Save'}
         </button>
 
         {isEditing && (
           <button type="button" className="btn-ghost btn-icon" onClick={clearDraft}>
-            Cancel edit
+            Cancel
           </button>
         )}
 
@@ -186,7 +227,7 @@ export function IdeasPage() {
               <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
               <line x1="12" y1="19" x2="12" y2="23" />
             </svg>
-            {isEditing ? 'Replace recording' : 'Record voice'}
+            {isEditing && editingIdea?.audioUrl ? 'Re-record' : 'Record'}
           </button>
         ) : (
           <button
@@ -206,61 +247,77 @@ export function IdeasPage() {
         </span>
       </div>
 
+      {ideas.length > 0 && (
+        <h3 className="idea-list-heading">Saved Ideas</h3>
+      )}
+
       <div className="stack" style={{ gap: '0.6rem' }}>
-        {ideas.map((idea) => (
-          <div
-            key={idea.id}
-            className="idea-card"
-            role="button"
-            tabIndex={0}
-            onClick={() => openIdea(idea)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                openIdea(idea)
-              }
-            }}
-            style={{
-              cursor: 'pointer',
-              outline: editingId === idea.id ? '2px solid var(--accent)' : undefined,
-              outlineOffset: 2,
-            }}
-          >
-            <div className="row" style={{ justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {formatCreatedAt(idea.createdAt)}
-              </span>
-              <div className="row" style={{ gap: '0.35rem' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 600 }}>Open</span>
-                <button
-                  className="remove"
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    deleteIdea(idea.id)
-                  }}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1rem' }}
-                  title="Delete"
-                >
-                  &times;
-                </button>
+        {ideas.map((idea) => {
+          const active = editingId === idea.id
+          return (
+            <div
+              key={idea.id}
+              className={`idea-card${active ? ' idea-card-active' : ''}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => openIdea(idea)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  openIdea(idea)
+                }
+              }}
+            >
+              <div className="row" style={{ justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {formatCreatedAt(idea.createdAt)}
+                </span>
+                <div className="row" style={{ gap: '0.35rem' }}>
+                  {active ? (
+                    <span className="idea-status-badge">Editing</span>
+                  ) : (
+                    <span className="idea-open-link">Open</span>
+                  )}
+                  {idea.audioUrl && (
+                    <span className="idea-has-audio" title="Has recording">
+                      <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      </svg>
+                    </span>
+                  )}
+                  <button
+                    className="remove"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteIdea(idea.id)
+                    }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1rem' }}
+                    title="Delete"
+                  >
+                    &times;
+                  </button>
+                </div>
               </div>
+              <p style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{idea.text}</p>
+              {idea.audioUrl && !active && (
+                <AudioPlayer
+                  src={idea.audioUrl}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                />
+              )}
             </div>
-            <p style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{idea.text}</p>
-            {idea.audioUrl && (
-              <AudioPlayer
-                src={idea.audioUrl}
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-              />
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-        Tap a saved note to open it in the editor. Use Update note to save changes.
-      </p>
+      {ideas.length === 0 && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1.5rem 0' }}>
+          No ideas yet. Type a note or record a voice memo to get started.
+        </p>
+      )}
 
       <style>{`
         @keyframes pulse {

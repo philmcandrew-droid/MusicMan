@@ -44,7 +44,7 @@ export function PianoChordBuilderPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Interactive Chord Builder</h2>
+      <h2 className="page-title">Chord Builder</h2>
       <p className="page-subtitle">Select a root and quality, then click the keys to hear them. The keyboard highlights active chord tones.</p>
 
       <div className="row" style={{ gap: '1rem', flexWrap: 'wrap' }}>

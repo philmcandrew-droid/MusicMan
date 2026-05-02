@@ -1,0 +1,74 @@
+============================================================
+GOOGLE PLAY STORE LISTING — MusicMan
+============================================================
+
+APP NAME: MusicMan
+
+CATEGORY: Music & Audio
+
+------------------------------------------------------------
+SHORT DESCRIPTION (max 80 characters):
+------------------------------------------------------------
+Guitar tuner, chord library, song builder & idea capture for musicians.
+
+------------------------------------------------------------
+FULL DESCRIPTION (max 4000 characters):
+------------------------------------------------------------
+MusicMan is your all-in-one musician assistant — tune your guitar, explore hundreds of chords, plan song arrangements, and capture ideas on the fly.
+
+Whether you're a beginner learning your first chords or an experienced player writing new songs, MusicMan puts essential tools at your fingertips — no internet required.
+
+GUITAR TUNER
+Tune your guitar with real-time pitch detection. Visual cents meter shows exactly how sharp or flat each string is, supporting standard tuning with instant feedback.
+
+GUITAR CHORD LIBRARY
+Browse 430+ guitar chords across all 12 keys. Full CAGED system positions, triad inversions, 7th chords, major 7th, minor 7th, 9th, 13th, sus4, power chords, and jazz voicings. Filter by key, type, and CAGED shape to find exactly what you need.
+
+OPEN TUNING CHORDS
+Dedicated chord library for Open D, Open G, Open E, Open A, Open C, DADGAD, and Drop D tunings. Select a tuning and instantly see all available chord shapes with fret diagrams.
+
+PIANO CHORD LIBRARY
+Visual piano keyboard showing major, minor, 7th, sus, augmented, and diminished chords with highlighted keys.
+
+CHORD BUILDER
+Build any chord from scratch. Pick a root note and interval formula to hear and visualise the result on a piano keyboard.
+
+SONG STRUCTURE BUILDER
+Plan your arrangements with section blocks — verse, chorus, bridge, intro, outro, solo, and more. Drag and drop to rearrange your song structure visually.
+
+IDEA CAPTURE
+Jot down lyrics, riff ideas, or arrangement notes. Record voice memos with full playback and seeking. Open any saved idea to edit the text or re-record the audio. All ideas are saved locally on your device.
+
+CIRCLE OF FIFTHS
+Interactive music theory reference. Explore key signatures, relative minors, and chord relationships with a visual circle diagram.
+
+AI COACH
+Get personalised tips on technique, theory, practice routines, and songwriting from an AI-powered music assistant.
+
+KEY FEATURES
+• 430+ guitar chords with CAGED positions and inversions
+• 7 open tuning chord libraries
+• Real-time guitar tuner with visual feedback
+• Voice memo recording with playback seeking
+• Song structure planning tool
+• Interactive Circle of Fifths
+• Works offline — all tools available without internet
+• Dark theme optimised for stage and studio use
+• Free with no ads
+
+Built by Phil McAndrew.
+
+------------------------------------------------------------
+TAGS / KEYWORDS:
+------------------------------------------------------------
+guitar tuner, chord library, CAGED system, music theory, songwriting, voice memo, open tunings, piano chords, circle of fifths, musician tool
+
+------------------------------------------------------------
+CONTENT RATING QUESTIONNAIRE NOTES:
+------------------------------------------------------------
+- No violence, sexual content, or profanity
+- No user-generated content sharing
+- No purchases or ads
+- No location data collection
+- Uses microphone for local voice recording only
+- Recommended rating: Everyone

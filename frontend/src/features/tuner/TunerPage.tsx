@@ -4,23 +4,18 @@ import { PitchDetector } from 'pitchy'
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 const GUITAR_STRINGS = [
-  { label: 'E2', note: 'E', octave: 2, freq: 82.41 },
-  { label: 'A2', note: 'A', octave: 2, freq: 110.0 },
-  { label: 'D3', note: 'D', octave: 3, freq: 146.83 },
-  { label: 'G3', note: 'G', octave: 3, freq: 196.0 },
-  { label: 'B3', note: 'B', octave: 3, freq: 246.94 },
-  { label: 'E4', note: 'E', octave: 4, freq: 329.63 },
+  { label: 'E', num: 6, freq: 82.41, note: 'E', octave: 2 },
+  { label: 'A', num: 5, freq: 110.0, note: 'A', octave: 2 },
+  { label: 'D', num: 4, freq: 146.83, note: 'D', octave: 3 },
+  { label: 'G', num: 3, freq: 196.0, note: 'G', octave: 3 },
+  { label: 'B', num: 2, freq: 246.94, note: 'B', octave: 3 },
+  { label: 'E', num: 1, freq: 329.63, note: 'E', octave: 4 },
 ]
 
 const SMOOTHING = 0.3
 
-function midiFromHz(hz: number) {
-  return 12 * Math.log2(hz / 440) + 69
-}
-
-function hzFromMidi(midi: number) {
-  return 440 * Math.pow(2, (midi - 69) / 12)
-}
+function midiFromHz(hz: number) { return 12 * Math.log2(hz / 440) + 69 }
+function hzFromMidi(midi: number) { return 440 * Math.pow(2, (midi - 69) / 12) }
 
 function noteInfo(hz: number) {
   const midi = midiFromHz(hz)
@@ -50,6 +45,48 @@ function arcPath(cx: number, cy: number, r: number, startDeg: number, endDeg: nu
   return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 0 ${x2} ${y2}`
 }
 
+let refAudioCtx: AudioContext | null = null
+let refActiveNodes: { oscs: OscillatorNode[]; gain: GainNode } | null = null
+
+function stopReferenceTone() {
+  if (!refActiveNodes || !refAudioCtx) return
+  refActiveNodes.gain.gain.setTargetAtTime(0, refAudioCtx.currentTime, 0.05)
+  refActiveNodes.oscs.forEach((o) => { try { o.stop(refAudioCtx!.currentTime + 0.2) } catch {} })
+  refActiveNodes = null
+}
+
+function playReferenceTone(frequency: number) {
+  stopReferenceTone()
+  if (!refAudioCtx) refAudioCtx = new AudioContext()
+  const ctx = refAudioCtx
+  if (ctx.state === 'suspended') ctx.resume()
+  const masterGain = ctx.createGain()
+  masterGain.gain.setValueAtTime(0, ctx.currentTime)
+  masterGain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.03)
+  masterGain.gain.setValueAtTime(0.4, ctx.currentTime + 2.5)
+  masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 3.0)
+  masterGain.connect(ctx.destination)
+  const oscs: OscillatorNode[] = []
+  const partials = [
+    { mult: 1, g: 0.35 }, { mult: 2, g: 0.25 }, { mult: 3, g: 0.12 },
+    { mult: 4, g: 0.08 }, { mult: 5, g: 0.04 }, { mult: 0.5, g: 0.02 },
+  ]
+  for (const p of partials) {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(frequency * p.mult, ctx.currentTime)
+    g.gain.setValueAtTime(p.g, ctx.currentTime)
+    osc.connect(g)
+    g.connect(masterGain)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 3.1)
+    oscs.push(osc)
+  }
+  refActiveNodes = { oscs, gain: masterGain }
+  oscs[0].onended = () => { if (refActiveNodes?.oscs[0] === oscs[0]) refActiveNodes = null }
+}
+
 export function TunerPage() {
   const [hz, setHz] = useState<number | null>(null)
   const [note, setNote] = useState<string>('—')
@@ -57,6 +94,7 @@ export function TunerPage() {
   const [cents, setCents] = useState(0)
   const [running, setRunning] = useState(false)
   const [selectedString, setSelectedString] = useState(0)
+  const [playingRef, setPlayingRef] = useState(false)
   const animRef = useRef(0)
   const ctxRef = useRef<AudioContext | null>(null)
   const smoothHzRef = useRef<number | null>(null)
@@ -75,9 +113,7 @@ export function TunerPage() {
     const detector = PitchDetector.forFloat32Array(analyser.fftSize)
     const buf = new Float32Array(analyser.fftSize)
     setRunning(true)
-
     let frameCount = 0
-
     const loop = () => {
       analyser.getFloatTimeDomainData(buf)
       const [pitch, clarity] = detector.findPitch(buf, ctx.sampleRate)
@@ -85,12 +121,10 @@ export function TunerPage() {
         const prev = smoothHzRef.current
         const smoothed = prev ? prev + SMOOTHING * (pitch - prev) : pitch
         smoothHzRef.current = smoothed
-
         const info = noteInfo(smoothed)
         const prevCents = smoothCentsRef.current
         const smoothedCents = prevCents + SMOOTHING * (info.cents - prevCents)
         smoothCentsRef.current = smoothedCents
-
         frameCount++
         if (frameCount % 3 === 0) {
           setHz(smoothed)
@@ -104,6 +138,18 @@ export function TunerPage() {
     loop()
   }, [running])
 
+  const stopTuner = useCallback(() => {
+    cancelAnimationFrame(animRef.current)
+    ctxRef.current?.close()
+    ctxRef.current = null
+    smoothHzRef.current = null
+    smoothCentsRef.current = 0
+    setRunning(false)
+    setHz(null)
+    setNote('—')
+    setCents(0)
+  }, [])
+
   useEffect(() => {
     return () => {
       cancelAnimationFrame(animRef.current)
@@ -111,172 +157,131 @@ export function TunerPage() {
     }
   }, [])
 
+  const handlePlayRef = () => {
+    playReferenceTone(GUITAR_STRINGS[selectedString].freq)
+    setPlayingRef(true)
+    setTimeout(() => setPlayingRef(false), 3000)
+  }
+
   const needleAngle = Math.max(-50, Math.min(50, cents)) * 1.7
   const color = tuneColor(cents)
   const inTune = Math.abs(cents) < 5
   const target = GUITAR_STRINGS[selectedString]
 
-  const CX = 200
-  const CY = 190
-  const R = 155
+  const CX = 200, CY = 190, R = 155
 
   return (
-    <div className="page-card stack">
+    <div className="page-card stack tuner-page">
       <h2 className="page-title">Guitar Tuner</h2>
-      <p className="page-subtitle">Select a string, play it, and tune until the needle is centered green.</p>
+      <p className="page-subtitle">Play a string and tune until the needle is centered.</p>
 
       {/* String selector */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.3rem, 1.5vw, 0.5rem)', flexWrap: 'wrap' }}>
-        {GUITAR_STRINGS.map((s, i) => {
-          const isTarget = i === selectedString
-          const matchesNote = running && note === s.note && octave === s.octave
-          const stringInTune = matchesNote && inTune
-          return (
-            <button
-              key={s.label}
-              onClick={() => setSelectedString(i)}
-              style={{
-                width: 'clamp(44px, 12vw, 56px)',
-                height: 'clamp(44px, 12vw, 56px)',
-                borderRadius: '50%',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                border: '2px solid',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                lineHeight: 1.15,
-                transition: 'all 0.2s ease',
-                background: stringInTune
-                  ? '#10b981'
-                  : matchesNote
-                    ? 'rgba(245,158,11,0.2)'
-                    : isTarget
-                      ? 'var(--accent)'
-                      : 'var(--bg-input)',
-                borderColor: stringInTune
-                  ? '#10b981'
-                  : matchesNote
-                    ? '#f59e0b'
-                    : isTarget
-                      ? 'var(--accent)'
-                      : 'var(--border-light)',
-                color: isTarget || stringInTune ? '#fff' : matchesNote ? '#f59e0b' : 'var(--text-secondary)',
-                boxShadow: stringInTune
-                  ? '0 0 24px rgba(16,185,129,0.5)'
-                  : matchesNote
-                    ? '0 0 16px rgba(245,158,11,0.3)'
-                    : isTarget
-                      ? '0 0 14px var(--accent-glow)'
-                      : 'none',
-              }}
-            >
-              <span>{s.note}</span>
-              <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>{s.freq.toFixed(0)} Hz</span>
-            </button>
-          )
-        })}
+      <div>
+        <span className="section-label">Select String</span>
+        <div className="tuner-string-cards">
+          {GUITAR_STRINGS.map((s, i) => {
+            const isTarget = i === selectedString
+            const matchesNote = running && note === s.note && octave === s.octave
+            const stringInTune = matchesNote && inTune
+            return (
+              <button
+                key={`${s.label}-${s.num}`}
+                className={`tuner-string-card${isTarget ? ' active' : ''}${stringInTune ? ' in-tune' : ''}${matchesNote && !stringInTune ? ' matching' : ''}`}
+                onClick={() => setSelectedString(i)}
+              >
+                {isTarget && <span className="tuner-string-dot" />}
+                <span className="tuner-string-card-note">{s.label}</span>
+                <span className="tuner-string-card-freq">{Math.round(s.freq)} Hz</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Target string info */}
-      {running && (
-        <div style={{ textAlign: 'center', fontSize: 'clamp(0.7rem, 2.2vw, 0.8rem)', color: 'var(--text-muted)', display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <span>Target: <strong style={{ color: 'var(--text-primary)' }}>{target.label}</strong> ({target.freq.toFixed(2)} Hz)</span>
-          {hz && (
-            <span>
-              Detected: <strong style={{ color }}>{note}{octave}</strong> ({hz.toFixed(1)} Hz)
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Gauge */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        <svg viewBox="0 0 400 240" style={{ width: '100%', maxWidth: 400, height: 'auto' }}>
-          {/* Background glow when in tune */}
+      <div className="tuner-gauge-wrap">
+        <svg viewBox="0 0 400 260" className="tuner-gauge">
           {running && inTune && (
             <circle cx={CX} cy={CY} r={R + 20} fill="none" stroke="#10b981" strokeWidth={1.5} opacity={0.15}>
               <animate attributeName="r" values={`${R + 15};${R + 25};${R + 15}`} dur="2s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.15;0.05;0.15" dur="2s" repeatCount="indefinite" />
             </circle>
           )}
-
-          {/* Colored arc zones — thicker, more visible */}
           <path d={arcPath(CX, CY, R, 170, 150)} stroke="#ef4444" strokeWidth={10} fill="none" opacity={0.3} strokeLinecap="round" />
           <path d={arcPath(CX, CY, R, 150, 120)} stroke="#f59e0b" strokeWidth={10} fill="none" opacity={0.3} strokeLinecap="round" />
-          <path d={arcPath(CX, CY, R, 120, 60)}  stroke="#10b981" strokeWidth={10} fill="none" opacity={running && inTune ? 0.6 : 0.3} strokeLinecap="round" />
-          <path d={arcPath(CX, CY, R, 60, 30)}   stroke="#f59e0b" strokeWidth={10} fill="none" opacity={0.3} strokeLinecap="round" />
-          <path d={arcPath(CX, CY, R, 30, 10)}   stroke="#ef4444" strokeWidth={10} fill="none" opacity={0.3} strokeLinecap="round" />
-
-          {/* Inner thin arc for refinement */}
+          <path d={arcPath(CX, CY, R, 120, 60)} stroke="#10b981" strokeWidth={10} fill="none" opacity={running && inTune ? 0.7 : 0.3} strokeLinecap="round" />
+          <path d={arcPath(CX, CY, R, 60, 30)} stroke="#f59e0b" strokeWidth={10} fill="none" opacity={0.3} strokeLinecap="round" />
+          <path d={arcPath(CX, CY, R, 30, 10)} stroke="#ef4444" strokeWidth={10} fill="none" opacity={0.3} strokeLinecap="round" />
           <path d={arcPath(CX, CY, R - 14, 170, 10)} stroke="#1e293b" strokeWidth={2} fill="none" opacity={0.5} />
 
-          {/* Tick marks */}
           {Array.from({ length: 21 }).map((_, i) => {
             const angle = (10 + i * 8) * (Math.PI / 180)
             const isMajor = i % 5 === 0
-            const inner = R - 14
-            const outer = isMajor ? R - 28 : R - 20
             return (
-              <line
-                key={i}
-                x1={CX + inner * Math.cos(angle)}
-                y1={CY - inner * Math.sin(angle)}
-                x2={CX + outer * Math.cos(angle)}
-                y2={CY - outer * Math.sin(angle)}
-                stroke={isMajor ? '#94a3b8' : '#475569'}
-                strokeWidth={isMajor ? 2 : 1}
-                strokeLinecap="round"
+              <line key={i}
+                x1={CX + (R - 14) * Math.cos(angle)} y1={CY - (R - 14) * Math.sin(angle)}
+                x2={CX + (isMajor ? R - 28 : R - 20) * Math.cos(angle)} y2={CY - (isMajor ? R - 28 : R - 20) * Math.sin(angle)}
+                stroke={isMajor ? '#94a3b8' : '#475569'} strokeWidth={isMajor ? 2 : 1} strokeLinecap="round"
               />
             )
           })}
 
-          {/* Labels */}
-          <text x={CX - R + 12} y={CY + 24} fontSize={11} fill="#94a3b8" textAnchor="middle" fontWeight={600}>FLAT</text>
-          <text x={CX} y={CY + 24} fontSize={10} fill="#475569" textAnchor="middle">0</text>
-          <text x={CX + R - 12} y={CY + 24} fontSize={11} fill="#94a3b8" textAnchor="middle" fontWeight={600}>SHARP</text>
+          <text x={CX - R + 18} y={CY + 20} fontSize={11} fill="#64748b" textAnchor="middle" fontWeight={600}>-50</text>
+          <text x={CX} y={CY - R + 30} fontSize={10} fill="#64748b" textAnchor="middle" fontWeight={600}>0</text>
+          <text x={CX + R - 18} y={CY + 20} fontSize={11} fill="#64748b" textAnchor="middle" fontWeight={600}>+50</text>
 
-          {/* Needle with smooth CSS transition */}
           <g style={{ transition: 'transform 0.15s ease-out', transformOrigin: `${CX}px ${CY}px` }} transform={`rotate(${-needleAngle}, ${CX}, ${CY})`}>
             <line x1={CX} y1={CY + 12} x2={CX} y2={CY - R + 30} stroke={color} strokeWidth={2.5} strokeLinecap="round" />
             <circle cx={CX} cy={CY} r={6} fill={color} />
             <circle cx={CX} cy={CY} r={3} fill="#0e1430" />
           </g>
 
-          {/* Note display */}
-          <text x={CX} y={CY - 35} textAnchor="middle" fontSize={52} fontWeight={800} fill={running ? color : '#334155'} style={{ transition: 'fill 0.2s' }}>
-            {note}
-          </text>
-          <text x={CX} y={CY - 10} textAnchor="middle" fontSize={14} fill="#94a3b8" fontWeight={500}>
-            {hz ? `${hz.toFixed(1)} Hz` : 'Waiting for input…'}
-          </text>
-          <text x={CX} y={CY + 8} textAnchor="middle" fontSize={13} fill={running ? color : '#475569'} fontWeight={600} style={{ transition: 'fill 0.2s' }}>
-            {running ? `${cents >= 0 ? '+' : ''}${cents.toFixed(0)} cents` : ''}
-          </text>
+          <text x={CX} y={CY - 40} textAnchor="middle" fontSize={56} fontWeight={800} fill={running ? color : '#334155'} style={{ transition: 'fill 0.2s' }}>{note}</text>
+          <text x={CX} y={CY - 6} textAnchor="middle" fontSize={20} fill={running ? color : '#475569'} fontWeight={700}>{running ? Math.round(Math.abs(cents)) : '0'}</text>
+          <text x={CX} y={CY + 12} textAnchor="middle" fontSize={10} fill="#64748b" fontWeight={600} letterSpacing="1.5">CENTS</text>
         </svg>
+
+        <div className="tuner-freq-badge">
+          <span>{hz ? `${hz.toFixed(1)} Hz` : '— Hz'}</span>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12h2l3-6 4 12 4-8 3 4h4" /></svg>
+        </div>
       </div>
 
-      {/* In-tune celebration */}
-      {running && inTune && (
-        <p style={{ textAlign: 'center', color: '#10b981', fontWeight: 700, fontSize: '1rem', margin: 0 }}>
-          In tune!
-        </p>
-      )}
+      {running && inTune && <p className="tuner-in-tune">In tune!</p>}
 
-      {!running ? (
-        <div style={{ textAlign: 'center' }}>
-          <button className="btn-primary btn-icon" onClick={startTuner} style={{ fontSize: '1rem', padding: '0.8rem 2rem' }}>
-            <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+      {/* Action buttons */}
+      <div className="tuner-actions">
+        {!running ? (
+          <button className="btn-primary btn-icon tuner-action-btn" onClick={startTuner}>
+            <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /></svg>
             Start Tuner
           </button>
-        </div>
-      ) : (
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-          Listening… play a string to detect pitch
-        </p>
-      )}
+        ) : (
+          <button className="btn-icon tuner-action-btn tuner-stop-btn" onClick={stopTuner}>
+            <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="1" y1="1" x2="23" y2="23" /><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" /><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .76-.12 1.49-.34 2.18" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+            Stop Tuner
+          </button>
+        )}
+
+        <button
+          className={`btn-ghost btn-icon tuner-action-btn${playingRef ? ' tuner-ref-playing' : ''}`}
+          onClick={handlePlayRef}
+          disabled={playingRef}
+        >
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" /></svg>
+          {playingRef ? `Playing ${target.label}${target.num} (${Math.round(target.freq)} Hz)` : 'Play Reference'}
+        </button>
+      </div>
+
+      {/* Quick tips */}
+      <div className="tuner-tips">
+        <h3>Quick Tips</h3>
+        <ul>
+          <li>Play each string one at a time for best results</li>
+          <li>Keep your instrument close to your device's microphone</li>
+          <li>Tap "Play Reference" to hear the correct pitch for the selected string</li>
+          <li>Green indicator means you're in tune!</li>
+        </ul>
+      </div>
     </div>
   )
 }

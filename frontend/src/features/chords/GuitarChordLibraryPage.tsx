@@ -52,7 +52,7 @@ export function GuitarChordLibraryPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Guitar Chord Library</h2>
+      <h2 className="page-title">Guitar Chords</h2>
       <p className="page-subtitle">
         Pick a key and type to browse chords. Narrow by CAGED position.
       </p>

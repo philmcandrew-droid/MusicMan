@@ -25,7 +25,7 @@ export function SongStructurePage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Song Structure Builder</h2>
+      <h2 className="page-title">Song Builder</h2>
       <p className="page-subtitle">Arrange sections visually and get guidance on how and why to use each one.</p>
 
       {/* Add controls */}
