@@ -24,6 +24,18 @@ const QUALITY_LABELS: Record<string, string> = {
 
 const CAGED_SHAPES = ['C', 'A', 'G', 'E', 'D']
 
+/**
+ * Lower score = easier / more open. Favours low fret positions and rewards
+ * ringing open strings, so the default voicing is the basic open chord anyone
+ * can play rather than a barre shape higher up the neck.
+ */
+function opennessScore(frets: number[]): number {
+  const fretted = frets.filter((f) => f > 0)
+  const maxFret = fretted.length ? Math.max(...fretted) : 0
+  const openStrings = frets.filter((f) => f === 0).length
+  return maxFret * 10 - openStrings
+}
+
 export function GuitarChordLibraryPage() {
   const [filterRoot, setFilterRoot] = useState<string | null>(null)
   const [filterQuality, setFilterQuality] = useState<string | null>(null)
@@ -70,13 +82,20 @@ export function GuitarChordLibraryPage() {
       // CAGED drill-down: show only the chosen shape's voicings.
       list = list.filter((c) => c.cagedShape === filterShape)
     } else {
-      // Default view: one voicing per chord (collapse stacked CAGED positions).
-      const seen = new Set<string>()
-      list = list.filter((c) => {
-        if (seen.has(c.name)) return false
-        seen.add(c.name)
-        return true
-      })
+      // Default view: one voicing per chord, choosing the easiest open-position
+      // shape (collapse stacked CAGED positions to the basic playable shape).
+      const byName = new Map<string, (typeof list)[number]>()
+      const order: string[] = []
+      for (const c of list) {
+        const existing = byName.get(c.name)
+        if (!existing) {
+          byName.set(c.name, c)
+          order.push(c.name)
+        } else if (opennessScore(c.frets) < opennessScore(existing.frets)) {
+          byName.set(c.name, c)
+        }
+      }
+      list = order.map((name) => byName.get(name)!)
     }
 
     return list

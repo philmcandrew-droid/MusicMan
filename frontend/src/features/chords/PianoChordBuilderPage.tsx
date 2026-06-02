@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { PageHero } from '../../components/PageHero'
 import { PianoKeyboard } from '../../components/PianoKeyboard'
+import { GuitarChordDiagram } from '../../components/GuitarChordDiagram'
+import { getOpenGuitarChord } from './chordData'
 
 const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -89,6 +91,9 @@ export function PianoChordBuilderPage() {
   const chordSymbol = `${root}${formula.suffix}`
   const bass = notes[0]
   const displaySymbol = inversion > 0 ? `${chordSymbol}/${bass}` : chordSymbol
+
+  // Easiest open-position guitar shape for the chord (root + type only).
+  const guitarVoicing = getOpenGuitarChord(root, quality)
 
   const inversionLabels = ['Root', '1st', '2nd', '3rd', '4th']
 
@@ -186,7 +191,37 @@ export function PianoChordBuilderPage() {
         </div>
       </div>
 
+      {/* Basic open guitar shape anyone can play */}
+      <div className="builder-guitar">
+        <div className="builder-guitar-head">
+          <span className="section-label">On guitar</span>
+          {guitarVoicing && (
+            <span className="builder-guitar-tag">
+              {guitarVoicing.isOpen ? 'Open chord' : 'Easiest shape'}
+            </span>
+          )}
+        </div>
+        {guitarVoicing ? (
+          <div className="builder-guitar-diagram">
+            <GuitarChordDiagram frets={guitarVoicing.frets} name={guitarVoicing.name} />
+            <div className="builder-guitar-legend">
+              <span><b>{chordSymbol}</b> — the basic open-position shape</span>
+              <span className="builder-guitar-key">
+                <span className="lg lg-x">×</span> don't play &nbsp;·&nbsp;
+                <span className="lg lg-o">○</span> open string &nbsp;·&nbsp;
+                <span className="lg lg-dot" /> finger
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p className="builder-hint">
+            This chord type doesn't have a simple open guitar shape — browse the Guitar Chords library for full voicings.
+          </p>
+        )}
+      </div>
+
       {/* Interactive piano */}
+      <span className="section-label">On piano</span>
       <PianoKeyboard
         startOctave={3}
         octaves={3}

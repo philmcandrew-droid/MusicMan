@@ -268,6 +268,59 @@ export const guitarChords: GuitarChord[] = [
 ]
 
 /* ------------------------------------------------------------------ */
+/*  Easiest open-position guitar voicing for a built chord             */
+/*  Used by the Chord Builder to show the basic shape "anyone can      */
+/*  play" for the chord the user is building.                          */
+/* ------------------------------------------------------------------ */
+
+export type OpenGuitarVoicing = {
+  name: string
+  frets: number[]
+  /** true when it uses open strings and stays within the first few frets */
+  isOpen: boolean
+}
+
+// Map the Chord Builder quality keys to the available CAGED shape sets.
+const BUILDER_GUITAR_SHAPES: Record<string, { shapes: Record<string, ShapeTemplate>; suffix: string }> = {
+  major:     { shapes: MAJOR_SHAPES, suffix: '' },
+  minor:     { shapes: MINOR_SHAPES, suffix: 'm' },
+  dominant7: { shapes: DOM7_SHAPES,  suffix: '7' },
+  major7:    { shapes: MAJ7_SHAPES,  suffix: 'maj7' },
+  minor7:    { shapes: MIN7_SHAPES,  suffix: 'm7' },
+}
+
+/**
+ * Returns the easiest playable open-position voicing for a chord, or null when
+ * no simple guitar shape exists for that quality. Among the five CAGED shapes
+ * we favour the one with the lowest frets and the most open strings.
+ */
+export function getOpenGuitarChord(root: string, builderQuality: string): OpenGuitarVoicing | null {
+  const cfg = BUILDER_GUITAR_SHAPES[builderQuality]
+  if (!cfg) return null
+
+  const rootSem = SEMITONE[root]
+  if (rootSem === undefined) return null
+
+  let best: { frets: number[]; score: number } | null = null
+  for (const template of Object.values(cfg.shapes)) {
+    const shift = ((rootSem - template.rootSemitone) + 12) % 12
+    const frets = shiftFrets(template.frets, shift)
+    const fretted = frets.filter((f) => f > 0)
+    const maxFret = fretted.length ? Math.max(...fretted) : 0
+    const openStrings = frets.filter((f) => f === 0).length
+    // Prefer a low top fret, then more ringing open strings.
+    const score = maxFret * 10 - openStrings
+    if (!best || score < best.score) best = { frets, score }
+  }
+  if (!best) return null
+
+  const topFret = Math.max(0, ...best.frets.filter((f) => f > 0))
+  const isOpen = best.frets.some((f) => f === 0) && topFret <= 4
+
+  return { name: `${root}${cfg.suffix}`, frets: best.frets, isOpen }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Piano chords  — generated for every root and quality               */
 /* ------------------------------------------------------------------ */
 
