@@ -1,6 +1,34 @@
+import { useEffect } from 'react'
+import { App as CapacitorApp } from '@capacitor/app'
+import { Capacitor } from '@capacitor/core'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { appRoutes } from './app/routeConfig'
 import { AppRoutes } from './app/routes'
+
+/**
+ * Make the Android hardware back button navigate within the app instead of
+ * exiting it. At the home screen we send the app to the background rather
+ * than closing it.
+ */
+function useAndroidBackButton() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+
+    const listenerPromise = CapacitorApp.addListener('backButton', () => {
+      if (window.location.pathname !== '/') {
+        navigate(-1)
+      } else {
+        CapacitorApp.minimizeApp()
+      }
+    })
+
+    return () => {
+      listenerPromise.then((listener) => listener.remove())
+    }
+  }, [navigate])
+}
 
 function PageNav() {
   const location = useLocation()
@@ -39,6 +67,8 @@ function PageNav() {
 }
 
 function App() {
+  useAndroidBackButton()
+
   return (
     <div className="app-layout">
       <aside className="sidebar">

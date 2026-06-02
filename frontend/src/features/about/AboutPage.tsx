@@ -96,7 +96,7 @@ export function AboutPage() {
           instruments, learn chords, build songs, and improve your musical skills.
         </p>
         <p className="help-about-dev">Developed by Phil McAndrew</p>
-        <span className="help-about-version">Version 1.7</span>
+        <span className="help-about-version">Version 1.8</span>
       </div>
 
       <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)' }}>

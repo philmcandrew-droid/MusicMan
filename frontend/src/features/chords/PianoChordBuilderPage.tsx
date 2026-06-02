@@ -4,27 +4,65 @@ import { PianoKeyboard } from '../../components/PianoKeyboard'
 
 const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
-const FORMULAS: Record<string, { intervals: number[]; label: string }> = {
-  major:       { intervals: [0, 4, 7],       label: 'Major' },
-  minor:       { intervals: [0, 3, 7],       label: 'Minor' },
-  diminished:  { intervals: [0, 3, 6],       label: 'Diminished' },
-  augmented:   { intervals: [0, 4, 8],       label: 'Augmented' },
-  major7:      { intervals: [0, 4, 7, 11],   label: 'Major 7th' },
-  minor7:      { intervals: [0, 3, 7, 10],   label: 'Minor 7th' },
-  dominant7:   { intervals: [0, 4, 7, 10],   label: 'Dominant 7th' },
-  dim7:        { intervals: [0, 3, 6, 9],    label: 'Diminished 7th' },
-  sus2:        { intervals: [0, 2, 7],       label: 'Suspended 2nd' },
-  sus4:        { intervals: [0, 5, 7],       label: 'Suspended 4th' },
-  add9:        { intervals: [0, 4, 7, 14],   label: 'Add 9' },
-  '6th':       { intervals: [0, 4, 7, 9],    label: '6th' },
-  minor6:      { intervals: [0, 3, 7, 9],    label: 'Minor 6th' },
-  '9th':       { intervals: [0, 4, 7, 10, 14], label: '9th' },
+type Formula = { intervals: number[]; label: string; suffix: string }
+
+const FORMULAS: Record<string, Formula> = {
+  major:      { intervals: [0, 4, 7],        label: 'Major',          suffix: '' },
+  minor:      { intervals: [0, 3, 7],        label: 'Minor',          suffix: 'm' },
+  diminished: { intervals: [0, 3, 6],        label: 'Diminished',     suffix: 'dim' },
+  augmented:  { intervals: [0, 4, 8],        label: 'Augmented',      suffix: 'aug' },
+  major7:     { intervals: [0, 4, 7, 11],    label: 'Major 7th',      suffix: 'maj7' },
+  minor7:     { intervals: [0, 3, 7, 10],    label: 'Minor 7th',      suffix: 'm7' },
+  dominant7:  { intervals: [0, 4, 7, 10],    label: 'Dominant 7th',   suffix: '7' },
+  dim7:       { intervals: [0, 3, 6, 9],     label: 'Diminished 7th', suffix: 'dim7' },
+  sus2:       { intervals: [0, 2, 7],        label: 'Suspended 2nd',  suffix: 'sus2' },
+  sus4:       { intervals: [0, 5, 7],        label: 'Suspended 4th',  suffix: 'sus4' },
+  add9:       { intervals: [0, 4, 7, 14],    label: 'Add 9',          suffix: 'add9' },
+  '6th':      { intervals: [0, 4, 7, 9],     label: '6th',            suffix: '6' },
+  minor6:     { intervals: [0, 3, 7, 9],     label: 'Minor 6th',      suffix: 'm6' },
+  '9th':      { intervals: [0, 4, 7, 10, 14], label: '9th',           suffix: '9' },
 }
 
 const INTERVAL_NAMES: Record<number, string> = {
-  0: 'R', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4', 6: 'b5',
+  0: 'Root', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4', 6: 'b5',
   7: '5', 8: '#5', 9: '6', 10: 'b7', 11: '7', 12: '8',
   13: 'b9', 14: '9',
+}
+
+const SEMITONE: Record<string, number> = {
+  C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5,
+  'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11,
+}
+
+function noteFreq(note: string, octave: number): number {
+  const s = (SEMITONE[note] ?? 0) - 9
+  return 440 * Math.pow(2, s / 12 + (octave - 4))
+}
+
+/** Play the chord tones in an ascending voicing from the (possibly inverted) bass. */
+function playChord(notes: string[]) {
+  const ctx = new AudioContext()
+  const master = ctx.createGain()
+  const now = ctx.currentTime
+  master.gain.setValueAtTime(0.0001, now)
+  master.gain.exponentialRampToValueAtTime(0.26, now + 0.02)
+  master.gain.exponentialRampToValueAtTime(0.001, now + 1.9)
+  master.connect(ctx.destination)
+
+  let octave = 4
+  let prev = -1
+  for (const note of notes) {
+    const pc = SEMITONE[note] ?? 0
+    if (pc <= prev) octave += 1
+    prev = pc
+    const osc = ctx.createOscillator()
+    osc.type = 'triangle'
+    osc.frequency.value = noteFreq(note, octave)
+    osc.connect(master)
+    osc.start(now)
+    osc.stop(now + 1.95)
+  }
+  setTimeout(() => ctx.close().catch(() => {}), 2200)
 }
 
 export function PianoChordBuilderPage() {
@@ -34,74 +72,114 @@ export function PianoChordBuilderPage() {
 
   const formula = FORMULAS[quality]
   const rootIdx = CHROMATIC.indexOf(root)
-  let notes = formula.intervals.map((step) => CHROMATIC[(rootIdx + step) % 12])
-  for (let i = 0; i < inversion && i < notes.length; i++) {
-    notes = [...notes.slice(1), notes[0]]
+
+  // Chord tones in root position, paired with their interval label.
+  const rootPositionTones = formula.intervals.map((step) => ({
+    note: CHROMATIC[(rootIdx + step) % 12],
+    interval: INTERVAL_NAMES[step] ?? `${step}`,
+  }))
+
+  // Apply inversion by rotating the tones.
+  let tones = rootPositionTones
+  for (let i = 0; i < inversion && i < tones.length; i++) {
+    tones = [...tones.slice(1), tones[0]]
   }
+  const notes = tones.map((t) => t.note)
 
-  const intervals = formula.intervals.map((step) => INTERVAL_NAMES[step] || `${step}`)
+  const chordSymbol = `${root}${formula.suffix}`
+  const bass = notes[0]
+  const displaySymbol = inversion > 0 ? `${chordSymbol}/${bass}` : chordSymbol
 
-  const chordSymbol = `${root}${quality === 'major' ? '' : quality === 'minor' ? 'm' : quality}`
+  const inversionLabels = ['Root', '1st', '2nd', '3rd', '4th']
 
   return (
     <div className="page-card stack">
       <PageHero
         variant="chord-builder"
         title="Chord Builder"
-        subtitle="Stack intervals from a root to build any chord, then click the keys to hear the tones you create."
+        subtitle="Build any chord in three steps: pick a root, choose a type, then hear it and try inversions."
         color="#f59e0b"
       />
 
-      <div className="row" style={{ gap: '1rem', flexWrap: 'wrap' }}>
-        <div>
-          <p className="section-label">Root Note</p>
-          <div className="chip-group">
-            {CHROMATIC.map((n) => (
-              <button key={n} className={`chip${n === root ? ' active' : ''}`} onClick={() => { setRoot(n); setInversion(0) }}>
-                {n}
-              </button>
-            ))}
+      {/* Step 1 — root */}
+      <div className="builder-step">
+        <div className="builder-step-head">
+          <span className="builder-step-num">1</span>
+          <div>
+            <h3>Choose a root note</h3>
+            <p>The note your chord is built on.</p>
           </div>
         </div>
-
-        <div>
-          <p className="section-label">Chord Quality</p>
-          <div className="chip-group">
-            {Object.entries(FORMULAS).map(([key, { label }]) => (
-              <button key={key} className={`chip${key === quality ? ' active' : ''}`} onClick={() => { setQuality(key); setInversion(0) }}>
-                {label}
-              </button>
-            ))}
-          </div>
+        <div className="chip-group">
+          {CHROMATIC.map((n) => (
+            <button key={n} className={`chip${n === root ? ' active' : ''}`} onClick={() => { setRoot(n); setInversion(0) }}>
+              {n}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Chord info */}
-      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', padding: '1rem 1.5rem', border: '1px solid var(--border-accent)', boxShadow: '0 0 24px var(--accent-glow)', textAlign: 'center', minWidth: 100 }}>
-          <p style={{ fontSize: '2.2rem', fontWeight: 800, background: 'linear-gradient(135deg, #a78bfa, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{chordSymbol}</p>
-          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{formula.label}</p>
-        </div>
-        <div className="stack" style={{ gap: '0.3rem' }}>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <strong>Notes:</strong> {notes.join(' — ')}
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Intervals:</span>
-            {intervals.map((iv, i) => (
-              <span key={i} style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.15rem 0.45rem', borderRadius: 'var(--radius-full)', background: i === 0 ? 'var(--accent)' : 'var(--accent-subtle)', color: i === 0 ? '#fff' : 'var(--accent)', border: `1px solid ${i === 0 ? 'var(--accent)' : 'var(--border-accent)'}` }}>{iv}</span>
-            ))}
+      {/* Step 2 — quality */}
+      <div className="builder-step">
+        <div className="builder-step-head">
+          <span className="builder-step-num">2</span>
+          <div>
+            <h3>Choose a chord type</h3>
+            <p>Each type stacks a different set of intervals on top of the root.</p>
           </div>
-          <div className="row" style={{ gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Inversion:</span>
+        </div>
+        <div className="chip-group">
+          {Object.entries(FORMULAS).map(([key, { label }]) => (
+            <button key={key} className={`chip${key === quality ? ' active' : ''}`} onClick={() => { setQuality(key); setInversion(0) }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Step 3 — result */}
+      <div className="builder-step">
+        <div className="builder-step-head">
+          <span className="builder-step-num">3</span>
+          <div>
+            <h3>Your chord</h3>
+            <p>Hear it, see its notes, and try inversions.</p>
+          </div>
+        </div>
+
+        <div className="builder-result">
+          <div className="builder-symbol">
+            <span className="builder-symbol-text">{displaySymbol}</span>
+            <span className="builder-symbol-label">{formula.label}{inversion > 0 ? ` · ${inversionLabels[inversion]} inversion` : ''}</span>
+          </div>
+
+          <button className="builder-play" onClick={() => playChord(notes)}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z" /></svg>
+            Play chord
+          </button>
+        </div>
+
+        {/* Chord tones with interval labels */}
+        <div className="builder-tones">
+          {tones.map((t, i) => (
+            <div key={i} className={`builder-tone${i === 0 ? ' bass' : ''}`}>
+              <span className="builder-tone-note">{t.note}</span>
+              <span className="builder-tone-interval">{t.interval}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Inversion selector */}
+        <div className="builder-inversions">
+          <span className="section-label">Inversion</span>
+          <div className="chip-group">
             {Array.from({ length: notes.length }).map((_, i) => (
               <button
                 key={i}
                 className={`chip${i === inversion ? ' active' : ''}`}
-                style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
                 onClick={() => setInversion(i)}
               >
-                {i === 0 ? 'Root' : `${i}${i === 1 ? 'st' : i === 2 ? 'nd' : 'rd'}`}
+                {inversionLabels[i] ?? `${i}th`}
               </button>
             ))}
           </div>
@@ -115,6 +193,7 @@ export function PianoChordBuilderPage() {
         highlightedNotes={notes}
         interactive
       />
+      <p className="builder-hint">Tip: the highlighted keys are your chord tones — tap any key to hear it on its own.</p>
     </div>
   )
 }

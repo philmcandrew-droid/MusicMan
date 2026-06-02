@@ -1,7 +1,19 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { PageHero } from '../../components/PageHero'
 import { PianoKeyboard } from '../../components/PianoKeyboard'
-import { pianoChords } from './chordData'
+import { PIANO_ROOTS, pianoChords } from './chordData'
+
+const QUALITY_LABELS: Record<string, string> = {
+  all: 'All',
+  major: 'Major',
+  minor: 'Minor',
+  major7: 'Maj7',
+  minor7: 'Min7',
+  dominant7: 'Dom7',
+  sus: 'Sus',
+  augmented: 'Aug',
+  diminished: 'Dim',
+}
 
 const QUALITIES = ['all', 'major', 'minor', 'major7', 'minor7', 'dominant7', 'sus', 'augmented', 'diminished']
 
@@ -34,7 +46,7 @@ function playChord(notes: string[], octave = 4) {
 }
 
 export function PianoChordLibraryPage() {
-  const [query, setQuery] = useState('')
+  const [filterRoot, setFilterRoot] = useState<string>('C')
   const [filterQuality, setFilterQuality] = useState('all')
   const [playingChord, setPlayingChord] = useState<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -42,11 +54,11 @@ export function PianoChordLibraryPage() {
   const filtered = useMemo(
     () =>
       pianoChords.filter((c) => {
-        const matchesName = c.name.toLowerCase().includes(query.toLowerCase())
+        const matchesRoot = c.root === filterRoot
         const matchesQuality = filterQuality === 'all' || c.quality === filterQuality
-        return matchesName && matchesQuality
+        return matchesRoot && matchesQuality
       }),
-    [query, filterQuality],
+    [filterRoot, filterQuality],
   )
 
   const handlePlay = useCallback((chordName: string, notes: string[]) => {
@@ -65,22 +77,31 @@ export function PianoChordLibraryPage() {
         color="#6366f1"
       />
 
-      <div className="row" style={{ gap: '0.75rem' }}>
-        <input
-          aria-label="Search piano chords"
-          placeholder="Search chords..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          style={{ maxWidth: 280 }}
-        />
+      <div className="glass-panel">
+        <span className="section-label">Key</span>
         <div className="chip-group">
-          {QUALITIES.map((q) => (
-            <button key={q} className={`chip${q === filterQuality ? ' active' : ''}`} onClick={() => setFilterQuality(q)}>
-              {q === 'all' ? 'All' : q}
+          {PIANO_ROOTS.map((r) => (
+            <button key={r} className={`chip${r === filterRoot ? ' active' : ''}`} onClick={() => setFilterRoot(r)}>
+              {r}
             </button>
           ))}
         </div>
       </div>
+
+      <div className="glass-panel">
+        <span className="section-label">Type</span>
+        <div className="chip-group">
+          {QUALITIES.map((q) => (
+            <button key={q} className={`chip${q === filterQuality ? ' active' : ''}`} onClick={() => setFilterQuality(q)}>
+              {QUALITY_LABELS[q] ?? q}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+        {filtered.length} chord{filtered.length !== 1 ? 's' : ''} in {filterRoot}
+      </p>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
         {filtered.map((chord) => {
@@ -103,7 +124,7 @@ export function PianoChordLibraryPage() {
                   className="chip"
                   style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', cursor: 'default' }}
                 >
-                  {chord.quality}
+                  {QUALITY_LABELS[chord.quality] ?? chord.quality}
                 </span>
                 <button
                   onClick={() => handlePlay(chord.name, chord.notes)}
@@ -140,7 +161,7 @@ export function PianoChordLibraryPage() {
             </div>
           )
         })}
-        {filtered.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No chords match your search.</p>}
+        {filtered.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No chords match this key and type.</p>}
       </div>
     </div>
   )

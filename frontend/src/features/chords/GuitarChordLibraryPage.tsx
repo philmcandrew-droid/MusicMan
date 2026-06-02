@@ -29,34 +29,65 @@ export function GuitarChordLibraryPage() {
   const [filterQuality, setFilterQuality] = useState<string | null>(null)
   const [filterShape, setFilterShape] = useState<string | null>(null)
 
-  const hasAnyFilter = filterRoot !== null || filterQuality !== null
-
-  const handleQualityChange = (quality: string | null) => {
-    setFilterQuality(quality)
-    if (quality !== null && !CAGED_QUALITIES.has(quality)) {
-      setFilterShape(null)
-    }
+  // Changing the key starts fresh: clear type and CAGED position.
+  const handleRootChange = (root: string) => {
+    setFilterShape(null)
+    setFilterQuality(null)
+    setFilterRoot((prev) => (prev === root ? null : root))
   }
 
-  const showCagedRow = filterQuality === null || CAGED_QUALITIES.has(filterQuality)
+  // Changing the type clears any CAGED position so options never stack.
+  const handleQualityChange = (quality: string) => {
+    setFilterShape(null)
+    setFilterQuality((prev) => (prev === quality ? null : quality))
+  }
+
+  const handleShapeChange = (shape: string) => {
+    setFilterShape((prev) => (prev === shape ? null : shape))
+  }
+
+  const clearAll = () => {
+    setFilterRoot(null)
+    setFilterQuality(null)
+    setFilterShape(null)
+  }
+
+  // CAGED positions only apply to CAGED-capable qualities.
+  const showCagedRow =
+    filterRoot !== null && (filterQuality === null || CAGED_QUALITIES.has(filterQuality))
 
   const filtered = useMemo(() => {
-    if (!hasAnyFilter) return []
+    // Nothing is shown until a key is chosen.
+    if (filterRoot === null) return []
 
-    return guitarChords.filter((c) => {
+    let list = guitarChords.filter((c) => {
+      if (c.root !== filterRoot) return false
       if (filterQuality !== null && c.quality !== filterQuality) return false
-      if (filterRoot !== null && c.root !== filterRoot) return false
-      if (filterShape !== null && c.cagedShape !== filterShape) return false
       return true
     })
-  }, [hasAnyFilter, filterQuality, filterRoot, filterShape])
+
+    if (filterShape !== null) {
+      // CAGED drill-down: show only the chosen shape's voicings.
+      list = list.filter((c) => c.cagedShape === filterShape)
+    } else {
+      // Default view: one voicing per chord (collapse stacked CAGED positions).
+      const seen = new Set<string>()
+      list = list.filter((c) => {
+        if (seen.has(c.name)) return false
+        seen.add(c.name)
+        return true
+      })
+    }
+
+    return list
+  }, [filterQuality, filterRoot, filterShape])
 
   return (
     <div className="page-card stack">
       <PageHero
         variant="guitar-chords"
         title="Guitar Chords"
-        subtitle="Pick a key and type to browse voicings. Narrow by CAGED position to find shapes anywhere on the neck."
+        subtitle="Pick a key to see every chord in it. Add a type to narrow down, then drill into CAGED positions."
         color="#8b5cf6"
       />
 
@@ -68,7 +99,7 @@ export function GuitarChordLibraryPage() {
             <button
               key={r}
               className={`chip${filterRoot === r ? ' active' : ''}`}
-              onClick={() => setFilterRoot(r === filterRoot ? null : r)}
+              onClick={() => handleRootChange(r)}
             >
               {r}
             </button>
@@ -76,32 +107,34 @@ export function GuitarChordLibraryPage() {
         </div>
       </div>
 
-      {/* Type filter */}
-      <div className="glass-panel">
-        <span className="section-label">Type</span>
-        <div className="chip-group">
-          {QUALITIES.map((q) => (
-            <button
-              key={q}
-              className={`chip${q === filterQuality ? ' active' : ''}`}
-              onClick={() => handleQualityChange(q === filterQuality ? null : q)}
-            >
-              {QUALITY_LABELS[q] ?? q}
-            </button>
-          ))}
+      {/* Type filter — only relevant once a key is chosen */}
+      {filterRoot !== null && (
+        <div className="glass-panel">
+          <span className="section-label">Type {filterQuality === null && <em style={{ fontWeight: 400, fontStyle: 'normal', color: 'var(--text-muted)' }}>· showing all</em>}</span>
+          <div className="chip-group">
+            {QUALITIES.map((q) => (
+              <button
+                key={q}
+                className={`chip${q === filterQuality ? ' active' : ''}`}
+                onClick={() => handleQualityChange(q)}
+              >
+                {QUALITY_LABELS[q] ?? q}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* CAGED shape filter */}
       {showCagedRow && (
         <div className="glass-panel">
-          <span className="section-label">CAGED Position</span>
+          <span className="section-label">CAGED Position {filterShape === null && <em style={{ fontWeight: 400, fontStyle: 'normal', color: 'var(--text-muted)' }}>· standard voicing</em>}</span>
           <div className="chip-group">
             {CAGED_SHAPES.map((s) => (
               <button
                 key={s}
                 className={`chip${filterShape === s ? ' active' : ''}`}
-                onClick={() => setFilterShape(s === filterShape ? null : s)}
+                onClick={() => handleShapeChange(s)}
               >
                 {s} shape
               </button>
@@ -110,29 +143,27 @@ export function GuitarChordLibraryPage() {
         </div>
       )}
 
-      {/* Results */}
-      {hasAnyFilter && (
+      {/* Results header */}
+      {filterRoot !== null && (
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            {filtered.length} chord{filtered.length !== 1 ? 's' : ''} shown
+            {filtered.length} chord{filtered.length !== 1 ? 's' : ''} in {filterRoot}
+            {filterQuality !== null ? ` · ${QUALITY_LABELS[filterQuality] ?? filterQuality}` : ''}
+            {filterShape !== null ? ` · ${filterShape} shape` : ''}
           </p>
           <button
             className="btn-ghost"
             style={{ fontSize: '0.72rem', padding: '0.3rem 0.7rem' }}
-            onClick={() => {
-              setFilterRoot(null)
-              setFilterQuality(null)
-              setFilterShape(null)
-            }}
+            onClick={clearAll}
           >
             Clear all
           </button>
         </div>
       )}
 
-      {!hasAnyFilter && (
+      {filterRoot === null && (
         <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>
-          Select a key or type above to browse chords.
+          Select a key above to browse its chords.
         </p>
       )}
 
@@ -148,7 +179,7 @@ export function GuitarChordLibraryPage() {
             <p className="notes">{chord.notes.join(' · ')}</p>
           </div>
         ))}
-        {filtered.length === 0 && hasAnyFilter && (
+        {filtered.length === 0 && filterRoot !== null && (
           <p style={{ color: 'var(--text-muted)', gridColumn: '1/-1' }}>No chords match your filters.</p>
         )}
       </div>

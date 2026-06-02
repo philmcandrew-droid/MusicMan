@@ -274,7 +274,7 @@ export function HomePage() {
         ))}
       </div>
 
-      <p className="home-footer">Built by Phil McAndrew &middot; v1.7</p>
+      <p className="home-footer">Built by Phil McAndrew &middot; v1.8</p>
     </div>
   )
 }

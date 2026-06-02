@@ -602,6 +602,164 @@ button {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+/* -------- Chord Builder -------- */
+
+.builder-step {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.builder-step-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.builder-step-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #1a1206;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.builder-step-head h3 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.builder-step-head p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.builder-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(99, 102, 241, 0.12));
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.builder-symbol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.builder-symbol-text {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.builder-symbol-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.builder-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #1a1206;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.builder-play:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.45);
+}
+
+.builder-play:active {
+  transform: translateY(0);
+}
+
+.builder-tones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.builder-tone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 54px;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+}
+
+.builder-tone.bass {
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.builder-tone-note {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.builder-tone-interval {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.builder-tone.bass .builder-tone-interval {
+  color: #f59e0b;
+}
+
+.builder-inversions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.builder-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 /* -------- Tape deck (Ideas page) -------- */
 
 .ideas-page {
@@ -1474,6 +1632,101 @@ button {
   white-space: pre-wrap;
 }
 
+/* Markdown rendering inside coach bubbles */
+.md {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.md > *:first-child { margin-top: 0; }
+.md > *:last-child { margin-bottom: 0; }
+
+.md-p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.md-h {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.md-h1 { font-size: 1.1rem; }
+.md-h2 { font-size: 1.02rem; }
+.md-h3 { font-size: 0.95rem; }
+.md-h4,
+.md-h5,
+.md-h6 { font-size: 0.9rem; }
+
+.md-ul,
+.md-ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.md-ul li,
+.md-ol li {
+  line-height: 1.5;
+}
+
+.md-ul { list-style: disc; }
+.md-ol { list-style: decimal; }
+
+.md-code {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  padding: 0.06em 0.36em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.md-pre {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.md-pre code {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  white-space: pre;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.md-quote {
+  margin: 0;
+  padding: 0.4rem 0.85rem;
+  border-left: 3px solid var(--border-accent);
+  background: var(--accent-subtle);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-secondary);
+}
+
+.md-hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.25rem 0;
+}
+
+.md strong { color: var(--text-primary); font-weight: 700; }
+
+.md a { color: var(--accent); text-decoration: underline; }
+
 /* -------- Open tuning page -------- */
 
 .tuning-banner {
@@ -1488,16 +1741,19 @@ button {
 }
 
 .tuning-banner-name {
+  display: block;
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-primary);
+  margin-bottom: 0.15rem;
 }
 
 .tuning-banner-strings {
+  display: block;
   font-size: 0.82rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.18em;
   color: var(--accent);
 }
 

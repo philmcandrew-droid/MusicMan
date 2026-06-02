@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { Markdown } from '../../components/Markdown'
 import { PageHero } from '../../components/PageHero'
 
 type Message = { role: 'user' | 'coach'; text: string }
@@ -298,20 +299,22 @@ export function AICoachPage() {
         {messages.map((msg, i) => (
           <div
             key={i}
+            className={msg.role === 'coach' ? 'coach-bubble' : 'user-bubble'}
             style={{
               alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: 'min(80%, 600px)',
+              maxWidth: 'min(85%, 620px)',
               background: msg.role === 'user' ? 'linear-gradient(135deg, #8b5cf6, #6366f1)' : 'var(--bg-elevated)',
               color: msg.role === 'user' ? '#fff' : 'var(--text-secondary)',
               border: msg.role === 'coach' ? '1px solid var(--border)' : 'none',
               borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-              padding: '0.6rem 0.85rem',
+              padding: '0.7rem 0.95rem',
               fontSize: 'clamp(0.82rem, 2.5vw, 0.9rem)',
               lineHeight: 1.65,
-              whiteSpace: 'pre-wrap',
             }}
           >
-            {msg.text}
+            {msg.role === 'coach'
+              ? <Markdown text={msg.text} />
+              : <span style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</span>}
           </div>
         ))}
         {streaming && messages[messages.length - 1]?.role !== 'coach' && <ThinkingBubble />}

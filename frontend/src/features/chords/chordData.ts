@@ -11,6 +11,7 @@ export type GuitarChord = {
 
 export type PianoChordEntry = {
   name: string
+  root: string
   notes: string[]
   quality: string
 }
@@ -267,32 +268,43 @@ export const guitarChords: GuitarChord[] = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Piano chords  (unchanged)                                          */
+/*  Piano chords  — generated for every root and quality               */
 /* ------------------------------------------------------------------ */
 
-export const pianoChords: PianoChordEntry[] = [
-  { name: 'C Major',  notes: ['C','E','G'],       quality: 'major' },
-  { name: 'D Major',  notes: ['D','F#','A'],      quality: 'major' },
-  { name: 'E Major',  notes: ['E','G#','B'],      quality: 'major' },
-  { name: 'F Major',  notes: ['F','A','C'],       quality: 'major' },
-  { name: 'G Major',  notes: ['G','B','D'],       quality: 'major' },
-  { name: 'A Major',  notes: ['A','C#','E'],      quality: 'major' },
-  { name: 'Bb Major', notes: ['Bb','D','F'],      quality: 'major' },
-  { name: 'Eb Major', notes: ['Eb','G','Bb'],     quality: 'major' },
-  { name: 'C Minor',  notes: ['C','Eb','G'],      quality: 'minor' },
-  { name: 'D Minor',  notes: ['D','F','A'],       quality: 'minor' },
-  { name: 'E Minor',  notes: ['E','G','B'],       quality: 'minor' },
-  { name: 'A Minor',  notes: ['A','C','E'],       quality: 'minor' },
-  { name: 'F Minor',  notes: ['F','Ab','C'],      quality: 'minor' },
-  { name: 'G Minor',  notes: ['G','Bb','D'],      quality: 'minor' },
-  { name: 'Cmaj7',    notes: ['C','E','G','B'],   quality: 'major7' },
-  { name: 'Dm7',      notes: ['D','F','A','C'],   quality: 'minor7' },
-  { name: 'Em7',      notes: ['E','G','B','D'],   quality: 'minor7' },
-  { name: 'G7',       notes: ['G','B','D','F'],   quality: 'dominant7' },
-  { name: 'Am7',      notes: ['A','C','E','G'],   quality: 'minor7' },
-  { name: 'Fmaj7',    notes: ['F','A','C','E'],   quality: 'major7' },
-  { name: 'Csus4',    notes: ['C','F','G'],       quality: 'sus' },
-  { name: 'Dsus2',    notes: ['D','E','A'],       quality: 'sus' },
-  { name: 'C Aug',    notes: ['C','E','G#'],      quality: 'augmented' },
-  { name: 'B Dim',    notes: ['B','D','F'],       quality: 'diminished' },
+export const PIANO_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'] as const
+
+type PianoQualityConfig = {
+  quality: string
+  suffix: string
+  intervals: number[]
+}
+
+// Order here defines the order chords appear within a key.
+const PIANO_QUALITIES: PianoQualityConfig[] = [
+  { quality: 'major',      suffix: '',     intervals: [0, 4, 7] },
+  { quality: 'minor',      suffix: 'm',    intervals: [0, 3, 7] },
+  { quality: 'major7',     suffix: 'maj7', intervals: [0, 4, 7, 11] },
+  { quality: 'minor7',     suffix: 'm7',   intervals: [0, 3, 7, 10] },
+  { quality: 'dominant7',  suffix: '7',    intervals: [0, 4, 7, 10] },
+  { quality: 'sus',        suffix: 'sus2', intervals: [0, 2, 7] },
+  { quality: 'sus',        suffix: 'sus4', intervals: [0, 5, 7] },
+  { quality: 'augmented',  suffix: 'aug',  intervals: [0, 4, 8] },
+  { quality: 'diminished', suffix: 'dim',  intervals: [0, 3, 6] },
 ]
+
+function generatePianoChords(): PianoChordEntry[] {
+  const chords: PianoChordEntry[] = []
+  for (const root of PIANO_ROOTS) {
+    for (const { quality, suffix, intervals } of PIANO_QUALITIES) {
+      chords.push({
+        name: `${root}${suffix}`,
+        root,
+        notes: buildNotes(root, intervals),
+        quality,
+      })
+    }
+  }
+  return chords
+}
+
+export const pianoChords: PianoChordEntry[] = generatePianoChords()

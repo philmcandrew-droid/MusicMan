@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 type Props = {
   startOctave?: number
@@ -11,6 +11,23 @@ type Props = {
 const WHITE_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 const BLACK_NOTE_MAP: Record<string, string> = { C: 'C#', D: 'D#', F: 'F#', G: 'G#', A: 'A#' }
 const BLACK_OFFSETS: Record<string, number> = { C: 0.62, D: 1.72, F: 3.62, G: 4.68, A: 5.74 }
+
+// Map any note spelling (sharp or flat) to its pitch class 0-11 so that
+// highlighted notes such as "Eb" correctly light up the "D#" key.
+const PITCH_CLASS: Record<string, number> = {
+  C: 0, 'B#': 0,
+  'C#': 1, Db: 1,
+  D: 2,
+  'D#': 3, Eb: 3,
+  E: 4, Fb: 4,
+  F: 5, 'E#': 5,
+  'F#': 6, Gb: 6,
+  G: 7,
+  'G#': 8, Ab: 8,
+  A: 9,
+  'A#': 10, Bb: 10,
+  B: 11, Cb: 11,
+}
 
 const WHITE_W = 44
 const WHITE_H = 140
@@ -44,9 +61,17 @@ export function PianoKeyboard({ startOctave = 4, octaves = 2, highlightedNotes =
   const svgW = totalWhite * WHITE_W + 2
   const svgH = WHITE_H + 4
 
-  const isHighlighted = useCallback(
-    (note: string) => highlightedNotes.some((n) => n === note || n === note.replace('#', '#')),
+  const highlightedClasses = useMemo(
+    () => new Set(highlightedNotes.map((n) => PITCH_CLASS[n]).filter((pc) => pc !== undefined)),
     [highlightedNotes],
+  )
+
+  const isHighlighted = useCallback(
+    (note: string) => {
+      const pc = PITCH_CLASS[note]
+      return pc !== undefined && highlightedClasses.has(pc)
+    },
+    [highlightedClasses],
   )
 
   const handleClick = (noteName: string, oct: number) => {
