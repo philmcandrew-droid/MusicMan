@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { PageHero } from '../../components/PageHero'
 import { AudioPlayer } from './AudioPlayer'
 import { loadStoredIdeas, saveStoredIdeas, type StoredIdea } from './ideasStorage'
 
@@ -370,8 +371,12 @@ export function IdeasPage() {
 
   return (
     <div className="page-card stack ideas-page">
-      <h2 className="page-title">Idea Capture</h2>
-      <p className="page-subtitle">Record riffs, lyrics, and voice memos on the fly.</p>
+      <PageHero
+        variant="ideas"
+        title="Idea Capture"
+        subtitle="Catch riffs, lyrics, and voice memos the moment they strike — record, play back, and shape the sound."
+        color="#f97316"
+      />
 
       {persistError && (
         <p style={{ color: 'var(--danger)', fontSize: '0.82rem' }} role="alert">{persistError}</p>

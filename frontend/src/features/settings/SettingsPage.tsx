@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PageHero } from '../../components/PageHero'
 
 interface AudioDevice {
   id: string
@@ -6,8 +7,14 @@ interface AudioDevice {
 }
 
 export function SettingsPage() {
-  const [sensitivity, setSensitivity] = useState(50)
-  const [referenceA, setReferenceA] = useState(440)
+  const [sensitivity, setSensitivity] = useState(() => {
+    const saved = localStorage.getItem('musicman-tuner-sensitivity')
+    return saved ? Number(saved) : 75
+  })
+  const [referenceA, setReferenceA] = useState(() => {
+    const saved = localStorage.getItem('musicman-reference-a')
+    return saved ? Number(saved) : 440
+  })
   const [autoDetect, setAutoDetect] = useState(true)
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('musicman-dark-mode')
@@ -18,6 +25,14 @@ export function SettingsPage() {
   const [outputDevices, setOutputDevices] = useState<AudioDevice[]>([])
   const [selectedInput, setSelectedInput] = useState('')
   const [selectedOutput, setSelectedOutput] = useState('')
+
+  useEffect(() => {
+    localStorage.setItem('musicman-tuner-sensitivity', String(sensitivity))
+  }, [sensitivity])
+
+  useEffect(() => {
+    localStorage.setItem('musicman-reference-a', String(referenceA))
+  }, [referenceA])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
@@ -52,8 +67,12 @@ export function SettingsPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Settings</h2>
-      <p className="page-subtitle">Customise your MusicMan experience.</p>
+      <PageHero
+        variant="settings"
+        title="Settings"
+        subtitle="Fine-tune the tuner, audio devices, appearance, and more to make Songster yours."
+        color="#64748b"
+      />
 
       {/* Tuner Settings */}
       <div className="settings-group">
@@ -174,7 +193,7 @@ export function SettingsPage() {
           </div>
           <div>
             <h3 className="settings-group-name">Appearance</h3>
-            <p className="settings-group-desc">Customise how MusicMan looks</p>
+            <p className="settings-group-desc">Customise how Songster looks</p>
           </div>
         </div>
 

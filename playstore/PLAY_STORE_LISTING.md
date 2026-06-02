@@ -1,13 +1,13 @@
-# MusicMan - Play Store Listing
+# Songster - Play Store Listing
 
 ## App Name
-MusicMan - Musician Assistant
+Songster - Musician Assistant
 
 ## Short Description (80 chars max)
 Guitar tuner, chord libraries, idea capture, song builder & more for musicians.
 
 ## Full Description (4000 chars max)
-MusicMan is your all-in-one musician assistant — a comprehensive toolkit designed for guitarists, pianists, and songwriters of all levels.
+Songster is your all-in-one musician assistant — a comprehensive toolkit designed for guitarists, pianists, and songwriters of all levels.
 
 **Guitar Tuner**
 Tune your guitar with precision using real-time pitch detection. Tap any string to hear a reference tone. Supports standard tuning with visual feedback showing how sharp or flat you are.
@@ -45,7 +45,7 @@ Get AI-powered feedback and guidance to improve your playing and writing.
 • Left-handed mode for chord diagrams
 • All data saved locally on your device
 
-Whether you're practising at home, jamming with friends, or capturing inspiration on the go, MusicMan has everything you need in one app.
+Whether you're practising at home, jamming with friends, or capturing inspiration on the go, Songster has everything you need in one app.
 
 ## Category
 Music & Audio
@@ -57,7 +57,7 @@ guitar tuner, chord library, music theory, songwriting, idea capture, voice memo
 Everyone
 
 ## Contact Email
-phil@musicman.app
+phil@songster.app
 
 ## Privacy Policy
 This app stores all data locally on your device. No personal data is collected or transmitted.

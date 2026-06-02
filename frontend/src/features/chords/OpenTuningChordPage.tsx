@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { GuitarChordDiagram } from '../../components/GuitarChordDiagram'
+import { PageHero } from '../../components/PageHero'
 import { openTuningChords, TUNINGS } from './openTuningData'
 
 const QUALITY_LABELS: Record<string, string> = {
@@ -24,10 +25,12 @@ export function OpenTuningChordPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Open Tuning Chords</h2>
-      <p className="page-subtitle">
-        Chord voicings for alternate and open tunings. Select a tuning to browse shapes.
-      </p>
+      <PageHero
+        variant="open-tunings"
+        title="Open Tuning Chords"
+        subtitle="Retune your strings and unlock new voicings. Select a tuning to browse shapes built for it."
+        color="#e879f9"
+      />
 
       {/* Tuning selector */}
       <div>

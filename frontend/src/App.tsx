@@ -43,7 +43,7 @@ function App() {
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <h1>MusicMan</h1>
+          <h1>Songster</h1>
           <span>Musician Assistant · Phil McAndrew</span>
         </div>
         {appRoutes.map((route) => (

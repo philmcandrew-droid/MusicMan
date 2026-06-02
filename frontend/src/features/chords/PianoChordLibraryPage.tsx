@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { PageHero } from '../../components/PageHero'
 import { PianoKeyboard } from '../../components/PianoKeyboard'
 import { pianoChords } from './chordData'
 
@@ -57,17 +58,12 @@ export function PianoChordLibraryPage() {
 
   return (
     <div className="page-card stack">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15))', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5">
-            <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M6 4v10M10 4v10M14 4v10M18 4v10M2 14h20" />
-          </svg>
-        </div>
-        <div>
-          <h2 className="page-title" style={{ marginBottom: 0 }}>Piano Chords</h2>
-          <p className="page-subtitle">Visual reference with mini keyboards. Tap Play to hear chords.</p>
-        </div>
-      </div>
+      <PageHero
+        variant="piano-chords"
+        title="Piano Chords"
+        subtitle="A visual reference with mini keyboards. Tap Play to hear each chord ring out."
+        color="#6366f1"
+      />
 
       <div className="row" style={{ gap: '0.75rem' }}>
         <input

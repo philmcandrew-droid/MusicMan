@@ -268,6 +268,92 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* -------- Section hero banner -------- */
+
+.page-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--hero-color) 22%, transparent) 0%, transparent 55%),
+    linear-gradient(135deg, color-mix(in srgb, var(--hero-color) 14%, transparent), color-mix(in srgb, var(--hero-color) 4%, transparent));
+  border: 1px solid color-mix(in srgb, var(--hero-color) 35%, transparent);
+  color: var(--text-primary);
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.06));
+  pointer-events: none;
+}
+
+.page-hero-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.page-hero-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 0.3rem;
+}
+
+.page-hero-sub {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  max-width: 42ch;
+}
+
+.page-hero-art {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 132px;
+  height: 96px;
+  color: var(--hero-color);
+  filter: drop-shadow(0 6px 16px color-mix(in srgb, var(--hero-color) 40%, transparent));
+}
+
+.page-hero-art svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+@media (max-width: 600px) {
+  .page-hero {
+    padding: 1.1rem 1.2rem;
+  }
+  .page-hero-title {
+    font-size: 1.3rem;
+  }
+  .page-hero-sub {
+    font-size: 0.8rem;
+  }
+  .page-hero-art {
+    width: 92px;
+    height: 70px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page-hero-art {
+    display: none;
+  }
+}
+
 /* -------- Visual polish utilities -------- */
 
 .page-hero-glow {
@@ -1448,33 +1534,85 @@ button {
 .home-hero::before {
   content: '';
   position: absolute;
-  top: -80px;
+  top: -90px;
   left: 50%;
   transform: translateX(-50%);
-  width: 400px;
-  height: 400px;
+  width: 420px;
+  height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(47, 174, 116, 0.22) 0%, transparent 70%);
   pointer-events: none;
   animation: hero-glow-pulse 4s ease-in-out infinite;
 }
 
+.home-brand {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.home-logo-mark {
+  width: 104px;
+  height: 104px;
+  filter: drop-shadow(0 6px 18px rgba(184, 131, 27, 0.35));
+  animation: logo-rise 0.7s ease-out both;
+}
+
+.home-logo-mark svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes logo-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.home-brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .home-title {
-  font-size: 2.8rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #a78bfa, #818cf8, #6366f1);
+  font-family: 'Cinzel Decorative', 'Inter', serif;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #f7e08a 0%, #e8b94a 40%, #2fae74 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.1;
+  line-height: 1;
+  text-shadow: 0 2px 18px rgba(47, 174, 116, 0.15);
+}
+
+.home-knot {
+  display: block;
+  width: 180px;
+  max-width: 60vw;
+  height: 12px;
+  color: #d4a017;
+  opacity: 0.75;
+}
+
+.home-knot svg {
+  width: 100%;
+  height: 100%;
 }
 
 .home-tagline {
+  position: relative;
+  z-index: 1;
   font-size: 1rem;
   color: var(--text-secondary);
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .home-grid {
@@ -1747,6 +1885,218 @@ button {
   height: 5px;
   border-radius: 50%;
   background: var(--accent);
+}
+
+/* -------- GuitarTuna-style tuner (mockup layout) -------- */
+
+.gt-tuner-page {
+  margin: -1rem -0.85rem 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+@media (min-width: 769px) {
+  .gt-tuner-page {
+    margin: 0;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+  }
+}
+
+.gt-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100dvh - 8.5rem);
+  padding: 1.25rem 1rem 1.5rem;
+  background-color: #2b2b2b;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border-radius: inherit;
+}
+
+[data-theme="light"] .gt-stage {
+  background-color: #3a3a3a;
+}
+
+.gt-scene {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  height: 380px;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gt-headstock-art {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Circular note buttons — left & right of headstock */
+.gt-note-btn {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #4a4a4a;
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.12s, background 0.12s, box-shadow 0.12s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.gt-note-btn:hover {
+  background: #565656;
+  transform: scale(1.06);
+}
+
+.gt-note-btn.selected {
+  background: #555;
+  box-shadow: 0 0 0 3px rgba(45, 212, 168, 0.5);
+}
+
+.gt-note-btn.detecting {
+  background: #5a5040;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.6);
+  animation: tuner-pulse 1s ease-in-out infinite;
+}
+
+.gt-note-btn.in-tune {
+  background: #2a5a48;
+  box-shadow: 0 0 0 3px #2dd4a8, 0 0 16px rgba(45, 212, 168, 0.45);
+}
+
+.gt-note-btn.playing {
+  background: #3d6a58;
+  animation: tuner-pulse 0.7s ease-in-out infinite;
+}
+
+/* Left column: D top, A mid, E bottom (align with pegs) */
+.gt-note-left.gt-note-row-0 { left: 0; top: 14%; }
+.gt-note-left.gt-note-row-1 { left: 0; top: 38%; }
+.gt-note-left.gt-note-row-2 { left: 0; top: 62%; }
+
+/* Right column: G, B, E */
+.gt-note-right.gt-note-row-0 { right: 0; top: 14%; }
+.gt-note-right.gt-note-row-1 { right: 0; top: 38%; }
+.gt-note-right.gt-note-row-2 { right: 0; top: 62%; }
+
+/* Live tuning feedback (shown while listening) */
+.gt-feedback {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.gt-feedback-note {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.gt-feedback-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.gt-bar-track {
+  position: relative;
+  height: 8px;
+  margin: 0.75rem 0 0.35rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.gt-bar-center {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 3px;
+  height: 16px;
+  margin-left: -1.5px;
+  background: #2dd4a8;
+  border-radius: 2px;
+}
+
+.gt-bar-needle {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  border-radius: 50%;
+  transition: left 0.1s ease-out, background 0.15s;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+.gt-feedback-status {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+/* Mint "Tap to tune" pill */
+.gt-tap-main {
+  width: 100%;
+  max-width: 320px;
+  margin-top: auto;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: #2dd4a8;
+  color: #0a0a0a;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.12s, box-shadow 0.12s;
+  box-shadow: 0 4px 20px rgba(45, 212, 168, 0.35);
+}
+
+.gt-tap-main:hover {
+  background: #34e0b4;
+  transform: scale(1.02);
+  box-shadow: 0 6px 24px rgba(45, 212, 168, 0.45);
+}
+
+.gt-tap-main:active {
+  transform: scale(0.98);
+}
+
+.gt-tap-main.listening {
+  background: #1a1a1a;
+  color: #2dd4a8;
+  border: 2px solid #2dd4a8;
+  box-shadow: 0 0 20px rgba(45, 212, 168, 0.2);
 }
 
 /* -------- Settings page -------- */
@@ -2208,7 +2558,12 @@ button {
   }
 
   .home-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
+  }
+
+  .home-logo-mark {
+    width: 84px;
+    height: 84px;
   }
 
   .home-tagline {

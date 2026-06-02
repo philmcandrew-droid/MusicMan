@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageHero } from '../../components/PageHero'
 
 type SectionType = 'Intro' | 'Verse' | 'Pre-Chorus' | 'Chorus' | 'Bridge' | 'Middle 8' | 'Outro' | 'Solo'
 
@@ -36,8 +37,12 @@ export function SongStructurePage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Song Builder</h2>
-      <p className="page-subtitle">Arrange sections visually and get guidance on how and why to use each one.</p>
+      <PageHero
+        variant="song-structure"
+        title="Song Builder"
+        subtitle="Arrange your sections on a visual timeline and get guidance on how and why to use each one."
+        color="#ec4899"
+      />
 
       {/* Add controls */}
       <div className="row">

@@ -1,4 +1,4 @@
-# MusicMan Architecture
+# Songster Architecture
 
 ## Frontend
 - Single-page React app with route-per-feature.

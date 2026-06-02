@@ -1,6 +1,6 @@
-# MusicMan
+# Songster
 
-MusicMan is a musician assistant web app with:
+Songster is a musician assistant web app with:
 - Guitar tuner (microphone pitch detection)
 - Guitar and piano chord libraries
 - Song structure builder with guidance
@@ -26,7 +26,7 @@ MusicMan is a musician assistant web app with:
    - `uvicorn app.main:app --reload`
 
 ## Android app (Capacitor)
-The Android project lives in `frontend/android` and wraps the same MusicMan UI in a native app shell.
+The Android project lives in `frontend/android` and wraps the same Songster UI in a native app shell.
 
 1. Prepare Android build:
    - `cd frontend`

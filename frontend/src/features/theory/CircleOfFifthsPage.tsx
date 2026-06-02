@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageHero } from '../../components/PageHero'
 
 const MAJOR_KEYS = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F']
 const MINOR_KEYS = ['Am', 'Em', 'Bm', 'F#m', 'C#m', 'G#m', 'D#m', 'Bbm', 'Fm', 'Cm', 'Gm', 'Dm']
@@ -52,8 +53,12 @@ export function CircleOfFifthsPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Circle of Fifths</h2>
-      <p className="page-subtitle">Click any key to explore its harmonic relationships.</p>
+      <PageHero
+        variant="circle-of-fifths"
+        title="Circle of Fifths"
+        subtitle="The map of key relationships. Click any key to explore its relatives, dominants, and common chords."
+        color="#14b8a6"
+      />
 
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         {/* SVG wheel */}

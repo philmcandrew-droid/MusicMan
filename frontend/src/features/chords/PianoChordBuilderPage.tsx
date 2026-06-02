@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageHero } from '../../components/PageHero'
 import { PianoKeyboard } from '../../components/PianoKeyboard'
 
 const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -44,8 +45,12 @@ export function PianoChordBuilderPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Chord Builder</h2>
-      <p className="page-subtitle">Select a root and quality, then click the keys to hear them. The keyboard highlights active chord tones.</p>
+      <PageHero
+        variant="chord-builder"
+        title="Chord Builder"
+        subtitle="Stack intervals from a root to build any chord, then click the keys to hear the tones you create."
+        color="#f59e0b"
+      />
 
       <div className="row" style={{ gap: '1rem', flexWrap: 'wrap' }}>
         <div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageHero } from '../../components/PageHero'
 
 const faqs = [
   { q: 'How do I use the tuner?', a: "Select the string you want to tune, tap 'Start Tuner', and play the string. The needle shows if you're flat (left), in tune (center/green), or sharp (right). Adjust your tuning peg until the needle stays centered." },
@@ -39,17 +40,12 @@ export function AboutPage() {
 
   return (
     <div className="page-card stack">
-      <div style={{ textAlign: 'center', position: 'relative' }}>
-        <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', top: '-10px', left: 0, opacity: 0.08 }}>
-          <text x="40" y="30" fontSize="28" fill="currentColor">&#9835;</text>
-          <text x="120" y="20" fontSize="22" fill="currentColor">&#9834;</text>
-          <text x="200" y="35" fontSize="32" fill="currentColor">&#9833;</text>
-          <text x="290" y="18" fontSize="24" fill="currentColor">&#9835;</text>
-          <text x="360" y="30" fontSize="20" fill="currentColor">&#9834;</text>
-        </svg>
-        <h2 className="page-title">Help Center</h2>
-        <p className="page-subtitle" style={{ display: 'inline-block' }}>Everything you need to know about MusicMan.</p>
-      </div>
+      <PageHero
+        variant="about"
+        title="Help Center"
+        subtitle="Everything you need to know about Songster — features, tips, and answers to common questions."
+        color="#38bdf8"
+      />
 
       {/* Features overview */}
       <div>
@@ -94,13 +90,13 @@ export function AboutPage() {
             <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
           </svg>
         </div>
-        <h3>About MusicMan</h3>
+        <h3>About Songster</h3>
         <p className="help-about-desc">
-          MusicMan is your personal musician assistant, helping you tune your
+          Songster is your personal musician assistant, helping you tune your
           instruments, learn chords, build songs, and improve your musical skills.
         </p>
         <p className="help-about-dev">Developed by Phil McAndrew</p>
-        <span className="help-about-version">Version 1.5</span>
+        <span className="help-about-version">Version 1.7</span>
       </div>
 
       <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)' }}>

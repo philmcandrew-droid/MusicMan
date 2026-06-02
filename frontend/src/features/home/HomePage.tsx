@@ -165,21 +165,98 @@ const features = [
   },
 ]
 
+function SongsterHarp() {
+  return (
+    <div className="home-logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 120 120" fill="none">
+        <defs>
+          <linearGradient id="songster-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#fbe79a" />
+            <stop offset="45%" stopColor="#e8b94a" />
+            <stop offset="100%" stopColor="#b9831b" />
+          </linearGradient>
+          <linearGradient id="songster-green" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1f7a4d" />
+            <stop offset="100%" stopColor="#0c3d27" />
+          </linearGradient>
+          <radialGradient id="songster-sheen" cx="0.35" cy="0.3" r="0.8">
+            <stop offset="0%" stopColor="#2fae74" />
+            <stop offset="100%" stopColor="#0a3221" />
+          </radialGradient>
+        </defs>
+
+        {/* Crest ring */}
+        <circle cx="60" cy="60" r="55" fill="url(#songster-sheen)" stroke="url(#songster-gold)" strokeWidth="3.5" />
+        <circle cx="60" cy="60" r="49" fill="none" stroke="#f7d774" strokeWidth="1" strokeOpacity="0.35" />
+
+        {/* Celtic harp */}
+        <g stroke="url(#songster-gold)" strokeLinecap="round">
+          {/* Forepillar */}
+          <path d="M40 99 C33 73 34 45 47 22" strokeWidth="5" fill="none" />
+          {/* Harmonic curve / neck */}
+          <path d="M47 22 C60 25 74 31 83 43" strokeWidth="5" fill="none" />
+          {/* Soundbox */}
+          <path d="M83 43 C89 64 84 88 71 99" strokeWidth="5.5" fill="none" />
+          {/* Base */}
+          <path d="M40 99 L71 99" strokeWidth="5.5" fill="none" />
+        </g>
+
+        {/* Decorative volute at the top of the pillar */}
+        <circle cx="47" cy="22" r="4.5" fill="none" stroke="url(#songster-gold)" strokeWidth="2.5" />
+
+        {/* Strings */}
+        <g stroke="#f6ead0" strokeWidth="1.1" strokeOpacity="0.85">
+          <line x1="50" y1="26" x2="46" y2="96" />
+          <line x1="56" y1="28" x2="51" y2="96" />
+          <line x1="62" y1="31" x2="56" y2="96" />
+          <line x1="68" y1="35" x2="60" y2="96" />
+          <line x1="73" y1="39" x2="64" y2="96" />
+          <line x1="78" y1="44" x2="68" y2="96" />
+        </g>
+
+        {/* Tuning pins along the neck */}
+        <g fill="url(#songster-gold)">
+          {[
+            [50, 26], [56, 28], [62, 31], [68, 35], [73, 39], [78, 44],
+          ].map(([cx, cy], i) => (
+            <circle key={i} cx={cx} cy={cy} r="1.9" />
+          ))}
+        </g>
+
+        {/* Shamrock accent */}
+        <g transform="translate(60 109)" fill="#3fb87f">
+          <circle cx="-4" cy="-1" r="3" />
+          <circle cx="4" cy="-1" r="3" />
+          <circle cx="0" cy="-5" r="3" />
+          <path d="M0 -1 L0 5" stroke="#3fb87f" strokeWidth="1.4" strokeLinecap="round" />
+        </g>
+      </svg>
+    </div>
+  )
+}
+
 export function HomePage() {
   const navigate = useNavigate()
 
   return (
     <div className="home-page">
       <div className="home-hero">
-        <svg className="home-floating-notes" width="280" height="60" viewBox="0 0 280 60" fill="none" aria-hidden="true">
-          <text x="20" y="35" fontSize="24" fill="currentColor" opacity="0.08" style={{ animation: 'float-note 3s ease-in-out infinite' }}>&#9835;</text>
-          <text x="70" y="25" fontSize="18" fill="currentColor" opacity="0.06" style={{ animation: 'float-note 4s ease-in-out 0.5s infinite' }}>&#9834;</text>
-          <text x="130" y="40" fontSize="28" fill="currentColor" opacity="0.07" style={{ animation: 'float-note 3.5s ease-in-out 1s infinite' }}>&#9833;</text>
-          <text x="200" y="20" fontSize="20" fill="currentColor" opacity="0.06" style={{ animation: 'float-note 4.5s ease-in-out 0.3s infinite' }}>&#9835;</text>
-          <text x="250" y="45" fontSize="16" fill="currentColor" opacity="0.08" style={{ animation: 'float-note 3.8s ease-in-out 0.8s infinite' }}>&#9834;</text>
-        </svg>
-        <h1 className="home-title">MusicMan</h1>
-        <p className="home-tagline">Your all-in-one musician assistant</p>
+        <div className="home-brand">
+          <SongsterHarp />
+          <div className="home-brand-text">
+            <h1 className="home-title">Songster</h1>
+            <span className="home-knot" aria-hidden="true">
+              <svg viewBox="0 0 120 12" fill="none" preserveAspectRatio="none">
+                <path d="M2 6 H40" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M118 6 H80" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M52 6 q4 -5 8 0 q4 5 8 0 q-4 -5 -8 0 q-4 5 -8 0z" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                <circle cx="44" cy="6" r="1.6" fill="currentColor" />
+                <circle cx="76" cy="6" r="1.6" fill="currentColor" />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <p className="home-tagline">Your all-in-one music companion</p>
       </div>
 
       <div className="home-grid">
@@ -197,7 +274,7 @@ export function HomePage() {
         ))}
       </div>
 
-      <p className="home-footer">Built by Phil McAndrew &middot; v1.5</p>
+      <p className="home-footer">Built by Phil McAndrew &middot; v1.7</p>
     </div>
   )
 }

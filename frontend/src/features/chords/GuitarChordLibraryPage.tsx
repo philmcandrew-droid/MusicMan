@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { GuitarChordDiagram } from '../../components/GuitarChordDiagram'
+import { PageHero } from '../../components/PageHero'
 import { guitarChords } from './chordData'
 
 const ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -52,21 +53,12 @@ export function GuitarChordLibraryPage() {
 
   return (
     <div className="page-card stack">
-      <h2 className="page-title">Guitar Chords</h2>
-      <p className="page-subtitle">
-        Pick a key and type to browse chords. Narrow by CAGED position.
-      </p>
-
-      <svg width="100%" height="24" viewBox="0 0 600 24" preserveAspectRatio="none" aria-hidden="true" style={{ opacity: 0.15, marginBottom: '-0.5rem' }}>
-        <line x1="0" y1="8" x2="600" y2="8" stroke="currentColor" strokeWidth="1" />
-        <line x1="0" y1="12" x2="600" y2="12" stroke="currentColor" strokeWidth="1" />
-        <line x1="0" y1="16" x2="600" y2="16" stroke="currentColor" strokeWidth="1" />
-        <line x1="0" y1="20" x2="600" y2="20" stroke="currentColor" strokeWidth="1" />
-        <line x1="0" y1="24" x2="600" y2="24" stroke="currentColor" strokeWidth="1" />
-        <circle cx="120" cy="12" r="4" fill="var(--accent)" opacity="0.6" />
-        <circle cx="240" cy="20" r="4" fill="var(--accent)" opacity="0.4" />
-        <circle cx="400" cy="16" r="4" fill="var(--accent)" opacity="0.5" />
-      </svg>
+      <PageHero
+        variant="guitar-chords"
+        title="Guitar Chords"
+        subtitle="Pick a key and type to browse voicings. Narrow by CAGED position to find shapes anywhere on the neck."
+        color="#8b5cf6"
+      />
 
       {/* Key filter */}
       <div className="glass-panel">

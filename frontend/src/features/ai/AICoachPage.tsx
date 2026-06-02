@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { PageHero } from '../../components/PageHero'
 
 type Message = { role: 'user' | 'coach'; text: string }
 
@@ -12,7 +13,7 @@ const OPENROUTER_MODELS = [
 ]
 
 const SYSTEM_PROMPT =
-  'You are MusicMan Coach, an expert music and songwriting assistant. ' +
+  'You are Songster Coach, an expert music and songwriting assistant. ' +
   'You help musicians with chord progressions, song structure, melody writing, ' +
   'harmony, rhythm, music theory, arrangement, lyrics, and production tips. ' +
   'Keep answers practical, encouraging, and concise (1-3 paragraphs). ' +
@@ -86,8 +87,8 @@ async function fetchFromOpenRouter(
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${OPENROUTER_KEY}`,
-        'HTTP-Referer': 'https://musicman.app',
-        'X-Title': 'MusicMan Coach',
+        'HTTP-Referer': 'https://songster.app',
+        'X-Title': 'Songster Coach',
       },
       body: JSON.stringify({
         model,
@@ -256,25 +257,19 @@ export function AICoachPage() {
         }
       `}</style>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', display: 'grid', placeItems: 'center', flexShrink: 0, boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)' }}>
-            <svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="10" y="8" width="28" height="24" rx="6" transform="scale(0.6) translate(3, 2)" />
-              <circle cx="9.6" cy="10.8" r="1.2" fill="white" />
-              <circle cx="14.4" cy="10.8" r="1.2" fill="white" />
-              <path d="M10.5 13.5c0.6 0.8 2.4 0.8 3 0" />
-              <path d="M8 18v-2M16 18v-2" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="page-title" style={{ marginBottom: 0 }}>AI Coach</h2>
-            <p className="page-subtitle" style={{ marginBottom: 0, paddingBottom: 0 }}>Songwriting and theory advice powered by AI.</p>
-          </div>
-        </div>
+      <div style={{ position: 'relative' }}>
+        <PageHero
+          variant="ai-coach"
+          title="AI Coach"
+          subtitle="Your songwriting and theory companion — ask about progressions, structure, melody, and more."
+          color="#a78bfa"
+        />
         {llmActive !== null && (
           <span
             style={{
+              position: 'absolute',
+              top: '0.75rem',
+              right: '0.75rem',
               fontSize: '0.7rem',
               padding: '0.25rem 0.6rem',
               borderRadius: 12,
